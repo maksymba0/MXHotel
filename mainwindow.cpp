@@ -3,12 +3,15 @@
 #include <QSpacerItem>
 #include <QTabBar>
 #include <QDebug>
+#include <QVBoxLayout>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     Themes = ThemeManager(this);
+
+
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     // Set up the pages
     SetBookingPage();
@@ -19,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
     SetNotificationsPage();
     SetRequestsPage();
     SetSettingsPage();
+
+    UpdateTheme((int)Themes::DEFAULT);
+
+    ui->tabWidget->setCurrentIndex(4);
 
 }
 
