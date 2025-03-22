@@ -8,6 +8,7 @@ class Booking
 {
 public:
     Booking();
+    Booking(const QDateTime &CreatedDate, const QDateTime &CheckedinDate, const QDateTime &CheckoutDate, int RoomNumber, const QString &bookerName, const QString &bookerEmail, const QString &bookerPhonenumber, const QVector<Customer> &customers);
     QDateTime getCreatedDate() const;
     void setCreatedDate(const QDateTime &newCreatedDate);
 
@@ -31,13 +32,19 @@ public:
 
     QVector<Customer> getCustomers() const;
     void setCustomers(const QVector<Customer> &newCustomers);
+    void addCustomer(Customer customer);
+
+    QString getBookingNumber() const;
+    void setBookingNumber(const QString &newBookingNumber);
 
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;
     QDateTime CheckoutDate;
+
     int RoomNumber;
 
+    QString bookingNumber;
     QString bookerName;
     QString bookerEmail;
     QString bookerPhonenumber;

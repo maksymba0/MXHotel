@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <thememanager.h>
+#include "booking.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -33,9 +34,10 @@ public:
     void SetSettingsPage();
 
     ThemeManager Themes;
-
+    QString RandomBookingNumber();
 private slots:
     void UpdateTheme(int Index);
+    void OnRoomInfoRequested(QString RoomName);
 
 private:
     Ui::MainWindow *ui;

@@ -526,7 +526,7 @@
      <enum>Qt::LayoutDirection::LeftToRight</enum>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <property name="movable">
      <bool>false</bool>
@@ -1155,6 +1155,11 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Created: %Date%</string>
       </property>
@@ -1167,6 +1172,11 @@
         <width>281</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
       </property>
       <property name="text">
        <string>Check-out date: %Date%</string>
@@ -1190,7 +1200,7 @@
        </font>
       </property>
       <property name="text">
-       <string>%Name% ( %Email% )  ( %Phone number)</string>
+       <string>%Name% ( %Email% )  ( %Phone number%)</string>
       </property>
      </widget>
      <widget class="QGroupBox" name="groupBox">
@@ -1293,6 +1303,11 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Check-in date: %Date%</string>
       </property>
@@ -1366,7 +1381,7 @@
        </column>
        <item row="0" column="0">
         <property name="text">
-         <string>5151</string>
+         <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
@@ -1374,7 +1389,7 @@
        </item>
        <item row="0" column="1">
         <property name="text">
-         <string>EUR</string>
+         <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
@@ -1382,7 +1397,7 @@
        </item>
        <item row="0" column="2">
         <property name="text">
-         <string>VISA</string>
+         <string/>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>
@@ -1418,7 +1433,7 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_9">
        <attribute name="title">
@@ -1443,7 +1458,7 @@
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_7">
+       <widget class="QPushButton" name="BookingRoom_0">
         <property name="geometry">
          <rect>
           <x>740</x>
@@ -1456,7 +1471,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_8">
+       <widget class="QPushButton" name="BookingRoom_1">
         <property name="geometry">
          <rect>
           <x>890</x>
@@ -1469,7 +1484,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_9">
+       <widget class="QPushButton" name="BookingRoom_2">
         <property name="geometry">
          <rect>
           <x>1040</x>
@@ -1482,7 +1497,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_10">
+       <widget class="QPushButton" name="InfoStorageButton">
         <property name="geometry">
          <rect>
           <x>230</x>
@@ -1519,7 +1534,7 @@
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_11">
+       <widget class="QPushButton" name="BookingRoom_3">
         <property name="geometry">
          <rect>
           <x>460</x>
@@ -1532,7 +1547,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_12">
+       <widget class="QPushButton" name="BookingRoom_4">
         <property name="geometry">
          <rect>
           <x>240</x>
@@ -1545,7 +1560,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_13">
+       <widget class="QPushButton" name="BookingRoom_5">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -1558,7 +1573,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_14">
+       <widget class="QPushButton" name="BookingRoom_6">
         <property name="geometry">
          <rect>
           <x>40</x>
@@ -1571,7 +1586,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_15">
+       <widget class="QPushButton" name="BookingRoom_7">
         <property name="geometry">
          <rect>
           <x>220</x>
@@ -1584,7 +1599,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_16">
+       <widget class="QPushButton" name="BookingRoom_8">
         <property name="geometry">
          <rect>
           <x>480</x>
@@ -1597,7 +1612,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_17">
+       <widget class="QPushButton" name="BookingRoom_9">
         <property name="geometry">
          <rect>
           <x>740</x>
@@ -1610,7 +1625,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_18">
+       <widget class="QPushButton" name="BookingRoom_10">
         <property name="geometry">
          <rect>
           <x>890</x>
@@ -1623,7 +1638,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_19">
+       <widget class="QPushButton" name="BookingRoom_11">
         <property name="geometry">
          <rect>
           <x>1040</x>
@@ -1636,7 +1651,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_20">
+       <widget class="QPushButton" name="BookingRoom_12">
         <property name="geometry">
          <rect>
           <x>920</x>
@@ -1673,7 +1688,7 @@
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_21">
+       <widget class="QPushButton" name="BookingRoom_13">
         <property name="geometry">
          <rect>
           <x>400</x>
@@ -1686,7 +1701,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_22">
+       <widget class="QPushButton" name="BookingRoom_14">
         <property name="geometry">
          <rect>
           <x>80</x>
@@ -1699,7 +1714,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_23">
+       <widget class="QPushButton" name="BookingRoom_15">
         <property name="geometry">
          <rect>
           <x>100</x>
@@ -1712,7 +1727,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_24">
+       <widget class="QPushButton" name="BookingRoom_16">
         <property name="geometry">
          <rect>
           <x>450</x>
@@ -1725,7 +1740,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_25">
+       <widget class="QPushButton" name="BookingRoom_17">
         <property name="geometry">
          <rect>
           <x>850</x>
@@ -1738,7 +1753,7 @@
          <string>Booking</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_26">
+       <widget class="QPushButton" name="BookingRoom_18">
         <property name="geometry">
          <rect>
           <x>930</x>

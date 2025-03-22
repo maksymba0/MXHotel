@@ -8,6 +8,9 @@ class Customer
 public:
     Customer();
 
+    bool operator==(const Customer& other) const {
+        return name == other.name && age == other.age && email == other.email;
+    }
 
     QString getName() const;
 
