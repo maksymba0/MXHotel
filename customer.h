@@ -31,10 +31,18 @@ public:
 
     void setDob(const QDate &newDob);
 
+    QString getDocumentType() const;
+    void setDocumentType(const QString &newDocumentType);
+
+    QString getDocumentNumber() const;
+    void setDocumentNumber(const QString &newDocumentNumber);
+
 private:
     QString name;
     QString email;
     QString phonenumber;
+    QString DocumentType;
+    QString DocumentNumber;
     int age;
     QDate dob;
 

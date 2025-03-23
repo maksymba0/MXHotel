@@ -1,8 +1,19 @@
 #include "booking.h"
-
+#include "payment.h"
 #include <QRegularExpression>
-
-Booking::Booking() {}
+#include <QDateTime>
+Booking::Booking()
+{
+    this->setBookingNumber("");
+    bookingNumber = "";
+    this->setBookerEmail("");
+    this->setBookerName("");
+    QDateTime time;
+    this->setCheckedinDate(time);
+    this->setCheckoutDate(time);
+    this->setCreatedDate(time);
+    this->setRoomNumber(0);
+}
 
 QDateTime Booking::getCreatedDate() const
 {
@@ -107,6 +118,25 @@ void Booking::setBookingNumber(const QString &newBookingNumber)
     else
     {
         qDebug() << "ERROR: RESERVATION NUMBER IS INVALID: " << newBookingNumber;
+    }
+}
+
+QVector<Payment> Booking::getPayments() const
+{
+    return payments;
+}
+
+void Booking::setPayments(const QVector<Payment> &newPayments)
+{
+    payments = newPayments;
+}
+
+void Booking::addPayment(Payment payment)
+{
+    if(!payments.contains(payment))
+    {
+        payments.push_back(payment);
+        qDebug() << "Added payment;";
     }
 }
 

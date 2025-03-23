@@ -4,6 +4,7 @@
 #include <QString>
 #include <QDebug>
 #include "customer.h"
+#include "payment.h"
 class Booking
 {
 public:
@@ -37,6 +38,10 @@ public:
     QString getBookingNumber() const;
     void setBookingNumber(const QString &newBookingNumber);
 
+    QVector<Payment> getPayments() const;
+    void setPayments(const QVector<Payment> &newPayments);
+    void addPayment(Payment payment);
+
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;
@@ -49,7 +54,7 @@ protected:
     QString bookerEmail;
     QString bookerPhonenumber;
 
-
+    QVector<Payment> payments;
     QVector<Customer> customers;
 };
 

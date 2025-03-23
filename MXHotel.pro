@@ -13,12 +13,14 @@ SOURCES += \
     customer.cpp \
     main.cpp \
     mainwindow.cpp \
+    payment.cpp \
     thememanager.cpp
 
 HEADERS += \
     booking.h \
     customer.h \
     mainwindow.h \
+    payment.h \
     thememanager.h
 
 FORMS += \

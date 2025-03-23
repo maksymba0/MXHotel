@@ -51,3 +51,23 @@ void Customer::setDob(const QDate &newDob)
 {
     dob = newDob;
 }
+
+QString Customer::getDocumentType() const
+{
+    return DocumentType;
+}
+
+void Customer::setDocumentType(const QString &newDocumentType)
+{
+    DocumentType = newDocumentType;
+}
+
+QString Customer::getDocumentNumber() const
+{
+    return DocumentNumber;
+}
+
+void Customer::setDocumentNumber(const QString &newDocumentNumber)
+{
+    DocumentNumber = newDocumentNumber;
+}
