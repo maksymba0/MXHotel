@@ -142,6 +142,10 @@ void MainWindow::LoadBooking(Booking *booking, int RoomNumber)
                          + booking->getBookerEmail()+" ) "
                          + "( " + booking->getBookerPhonenumber() +" )");
 
+
+    booking->AddNote("Caller ask about status.");
+    booking->AddNote("VIP PERSON");
+    ui->textEdit->setText(booking->getNotes());
     for(int i = 0 ; i < booking->getCustomers().size(); ++i)
     {
         Customer customer = booking->getCustomers()[i];

@@ -140,6 +140,21 @@ void Booking::addPayment(Payment payment)
     }
 }
 
+QString Booking::getNotes() const
+{
+    return notes;
+}
+
+void Booking::AddNote(QString param)
+{
+    notes.append("\n" + QDateTime::currentDateTime().toString("dd.MM.yyyy | ") + param);
+}
+
+void Booking::setNotes(const QString &newNotes)
+{
+    notes = newNotes;
+}
+
 Booking::Booking(const QDateTime &CreatedDate, const QDateTime &CheckedinDate, const QDateTime &CheckoutDate, int RoomNumber, const QString &bookerName, const QString &bookerEmail, const QString &bookerPhonenumber, const QVector<Customer> &customers) : CreatedDate(CreatedDate),
     CheckedinDate(CheckedinDate),
     CheckoutDate(CheckoutDate),

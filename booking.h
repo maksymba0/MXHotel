@@ -42,6 +42,10 @@ public:
     void setPayments(const QVector<Payment> &newPayments);
     void addPayment(Payment payment);
 
+    QString getNotes() const;
+    void AddNote(QString param);
+    void setNotes(const QString &newNotes);
+
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;
@@ -56,6 +60,8 @@ protected:
 
     QVector<Payment> payments;
     QVector<Customer> customers;
+
+    QString notes;
 };
 
 #endif // BOOKING_H
