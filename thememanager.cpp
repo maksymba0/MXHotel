@@ -150,7 +150,7 @@ void ThemeManager::OnThemeUpdated(QWidget* parent)
                 "    color: #888888;"
                 "}");
         }
-        qDebug() << "Changed " << groupBoxes.size() << " group boxes";
+       // qDebug() << "Changed " << groupBoxes.size() << " group boxes";
         break;
     case Themes::DARK:
         // TO BLACK

@@ -12,16 +12,16 @@ public:
         return name == other.name && age == other.age && email == other.email;
     }
 
-    QString getName() const;
+    QString getName();
 
-    QString getEmail() const;
+    QString getEmail();
 
-    QString getPhonenumber() const;
+    QString getPhonenumber();
     void setPhonenumber(const QString &newPhonenumber);
 
-    int getAge() const;
+    int getAge();
 
-    QDate getDob() const;
+    QDate getDob();
 
     void setName(const QString &newName);
 
@@ -31,11 +31,14 @@ public:
 
     void setDob(const QDate &newDob);
 
-    QString getDocumentType() const;
+    QString getDocumentType() ;
     void setDocumentType(const QString &newDocumentType);
 
-    QString getDocumentNumber() const;
+    QString getDocumentNumber() ;
     void setDocumentNumber(const QString &newDocumentNumber);
+
+    bool getCheckedIn();
+    void setCheckedIn(bool newCheckedIn);
 
 private:
     QString name;
@@ -45,6 +48,7 @@ private:
     QString DocumentNumber;
     int age;
     QDate dob;
+    bool checkedIn;
 
 };
 

@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QVBoxLayout>
 #include <QRandomGenerator>
+#include <QMessageBox>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -47,19 +48,20 @@ void MainWindow::UpdateTheme(int Index)
 void MainWindow::OnRoomInfoRequested(QString RoomName)
 {
     ui->tabWidget->setCurrentIndex(0);
-    int RoomNumber = RoomName.section('_',1).toInt();
+
 
     // Requesting data
 
-    Booking* booking =  new Booking();
+    Booking newbkg;
+    Booking* booking = &newbkg;
     booking->setBookerEmail("admin.admin@gmail.com");
     booking->setBookerName("Maksy Creator");
     booking->setBookerPhonenumber("+44 123 123 123");
     booking->setBookingNumber(RandomBookingNumber());
     const auto date = QDateTime::currentDateTime();
-    booking->setCheckedinDate(date.addDays(-2));
-    booking->setCheckoutDate(date.addDays(-1));
-    booking->setCreatedDate(date.addDays(-3));
+    booking->setCheckedinDate(date.addDays(1));
+    booking->setCheckoutDate(date.addDays(2));
+    booking->setCreatedDate(date.addDays(0));
     booking->setRoomNumber(0);
     Customer customer;
     customer.setPhonenumber("+44 123 123 123");
@@ -68,6 +70,7 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     customer.setName("Daniel Ricardo");
     customer.setDocumentNumber("KHTAIR9291");
     customer.setDocumentType("ID Card");
+    customer.setCheckedIn(false);
     booking->addCustomer(customer);
     customer.setPhonenumber("+380 95 128 190");
     customer.setAge(21);
@@ -75,6 +78,7 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     customer.setName("Vlad Kroker");
     customer.setDocumentNumber("MI299DAS0");
     customer.setDocumentType("Passport");
+    customer.setCheckedIn(false);
     booking->addCustomer(customer);
     customer.setPhonenumber("+380 68 330 110");
     customer.setAge(19);
@@ -82,6 +86,7 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     customer.setName("Zombuz Stepankov");
     customer.setDocumentNumber("PIV920OO");
     customer.setDocumentType("Refugee passport");
+    customer.setCheckedIn(false);
     booking->addCustomer(customer);
 
 
@@ -89,27 +94,280 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     {
         Payment payment;
         payment.PopulateWithRandomValues();
-        payment.Print();
+       // payment.Print();
         booking->addPayment(payment);
     }
     // Changing data on Hotel Map page
 
-    LoadBooking(booking,RoomNumber);
+    this->setBooking(*booking);
+    LoadBooking();
+}
+
+void MainWindow::OnTableItemEditable(QTableWidgetItem *item)
+{
+    qDebug() << "Double clicked";
+    if(!item)
+    {
+        return;
+    }
+    if(item->flags() & Qt::ItemIsEditable)
+    {
+        // Make this row non editable
+        auto row = item->row();
+        auto columnCount = ui->tableWidget->columnCount();
+        for(int i = 0; i < columnCount; ++i)
+        {
+            auto item = ui->tableWidget->item(row,i);
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            item->setForeground(Qt::black);
+        }
+    }else
+    {
+        // Make editable
+
+        auto row = item->row();
+        auto columnCount = ui->tableWidget->columnCount();
+        for(int i = 0; i < columnCount; ++i)
+        {
+            auto item = ui->tableWidget->item(row,i);
+            item->setFlags(item->flags() | Qt::ItemIsEditable);
+            item->setForeground(QColor(130, 200, 200));
+        }
+    }
+
+}
+
+void MainWindow::OnSavedChanges()
+{
+    qDebug() << "OnSavedChanges";
+}
+void MainWindow::OnCustomerBanned()
+{
+
+    qDebug() << "OnCustomerBanned";
+}
+void MainWindow::OnCustomerCreated(){
+
+    qDebug() << "OnCustomerCreated";
+    int count = ui->tableWidget->rowCount();
+    if(count >= 5)
+    {
+        QMessageBox::warning(this,"Create Customer","A room cannot contain more than 5 customers");
+        return;
+    }
+    ui->tableWidget->insertRow(count);
+    qDebug() << "rows: "<<ui->tableWidget->rowCount();
+    int columnNum = ui->tableWidget->columnCount();
+    for(int i = 0 ; i < columnNum; ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem("Text");
+        auto Widget = ui->tableWidget->item(ui->tableWidget->rowCount()-1,i);
+        if(Widget)
+        {
+            Widget->setBackground(QColor(0x545454));
+        }
+        else
+        {
+            qDebug() << "Reading nullptr;";
+        }
+        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,i,item);
+
+    }
+}
+void MainWindow::OnCustomerRemoved(){
+
+    qDebug() << "OnCustomerRemoved";
+    QSet<int> rows;
+
+    // Change information on booking
+
+    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+
+    if(selectedItems.empty())
+    {
+        auto RowMax = ui->tableWidget->rowCount();
+        if(RowMax <= 0)
+        {
+            return;
+        }
+        auto NameWidget = ui->tableWidget->item(RowMax,0);
+        auto Name = (NameWidget ? NameWidget->text() : "Empty cell");
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this,"Remove customer",""
+                                            "NO SPECIFIC CUSTOMER SELECTED. Are you sure you want to remove the last customer ( "+Name+ " ) from the booking?",
+                                            QMessageBox::Yes | QMessageBox::No);
+        if(reply == QMessageBox::Yes)
+        {
+         ui->tableWidget->removeRow(RowMax-1);
+        }
+        return;
+    }
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+    int columnCount = ui->tableWidget->columnCount();
+    for(auto& Row : rows)
+    {
+        auto NameWidget = ui->tableWidget->item(Row,0);
+        auto customer = booking.getCustomerByName(NameWidget->text());
+        bool IsSuccess = false;
+        if(!customer)
+        {
+            continue;
+        }
+        IsSuccess  = true;
+        // for each selected row
+        ui->tableWidget->removeRow(Row);
+        if(IsSuccess)
+            QMessageBox::information(this,"REMOVE SUCCESS",customer->getName() + " has been removed!");
+
+    }
+}
+void MainWindow::OnCustomerCheckedOut(){
+
+    qDebug() << "OnCustomerCheckedOut";
+    QSet<int> rows;
+
+    // Change information on booking
+
+    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+    if(selectedItems.empty())
+    {
+        QMessageBox::warning(this,"Action failed","Please select a customer first!");
+        return;
+    }
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+    int columnCount = ui->tableWidget->columnCount();
+    for(auto& Row : rows)
+    {
+        auto NameWidget = ui->tableWidget->item(Row,0);
+        auto customer = booking.getCustomerByName(NameWidget->text());
+        bool IsSuccess = false;
+        if(!customer)
+        {
+            continue;
+        }
+        if(!customer->getCheckedIn())
+        {
+            QMessageBox::warning(this,"CHECK-OUT FAILED",customer->getName() + " is not checked in! Why checking out?");
+            continue;
+        }
+        customer->setCheckedIn(false);
+        IsSuccess  = true;
+        // for each selected row
+        for(int Column = 0; Column < columnCount;++Column)
+        {
+            auto item = ui->tableWidget->item(Row,Column);
+
+            item->setBackground(QColor(0x545454));
+
+        }
+        if(IsSuccess)
+            QMessageBox::information(this,"CHECK-OUT SUCCESS",customer->getName() + " has been checked out!");
+
+    }
+}
+void MainWindow::OnCustomerCheckedIn(){
+
+    qDebug() << "OnCustomerCheckedIn";
+    QSet<int> rows;
+
+    // Change information on booking
+
+    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+    if(selectedItems.empty())
+    {
+        QMessageBox::warning(this,"Action failed","Please select a customer first!");
+        return;
+    }
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+    int columnCount = ui->tableWidget->columnCount();
+    for(auto& Row : rows)
+    {
+        auto NameWidget = ui->tableWidget->item(Row,0);
+        bool IsSuccess = false;
+        auto customer = booking.getCustomerByName(NameWidget->text());
+        if(!customer)
+        {
+            continue;
+        }
+        if(customer->getCheckedIn())
+        {
+            QMessageBox::warning(this,"CHECK-IN FAILED",customer->getName() + " is already checked in!");
+            continue;
+        }
+        customer->setCheckedIn(true);
+        IsSuccess = true;
+        // for each selected row
+        for(int Column = 0; Column < columnCount;++Column)
+        {
+            auto item = ui->tableWidget->item(Row,Column);
+            item->setBackground(QColor(0x1C7D17));
+        }
+        if(IsSuccess)
+            QMessageBox::information(this,"CHECK-IN SUCCESS",customer->getName() + " has been checked in!");
+
+    }
+}
+
+void MainWindow::OnNewBooking()
+{
+    getBooking()->Clear();
+    getBooking()->Print();
+    LoadBooking();
+}
+
+Booking* MainWindow::getBooking()
+{
+    return &booking;
+}
+
+void MainWindow::setBooking(const Booking &newBooking)
+{
+    booking = newBooking;
 }
 /////////////////////////////////////////
 /////////////////////////////////////////
 /////////////////////////////////////////
 void MainWindow::SetBookingPage()
 {
+// here we will connect buttons and signals events
+    connect(ui->tableWidget, &QTableWidget::itemDoubleClicked,
+            this, &MainWindow::OnTableItemEditable);
+    ui->tableWidget->setToolTip("Double click a cell to make the row editable/uneditable");
+
+
+    // savechanges
+    connect(ui->pushButton,&QPushButton::clicked,this,&MainWindow::OnSavedChanges);
+    // check in
+    connect(ui->pushButton_2,&QPushButton::clicked,this,&MainWindow::OnCustomerCheckedIn);
+    // check out
+    connect(ui->pushButton_3,&QPushButton::clicked,this,&MainWindow::OnCustomerCheckedOut);
+    // remove
+    connect(ui->pushButton_4,&QPushButton::clicked,this,&MainWindow::OnCustomerRemoved);
+    // create
+    connect(ui->pushButton_5,&QPushButton::clicked,this,&MainWindow::OnCustomerCreated);
+    // ban
+    connect(ui->pushButton_6,&QPushButton::clicked,this,&MainWindow::OnCustomerBanned);
+    // new booking, reset
+    connect(ui->pushButton_7,&QPushButton::clicked,this,&MainWindow::OnNewBooking);
 
 }
 
-void MainWindow::LoadBooking(Booking *booking, int RoomNumber)
+void MainWindow::LoadBooking()
 {
-    if(!booking)
-    {
-        booking = new Booking();
-    }
+    Booking* booking = getBooking();
+    int RoomNumber = booking->getRoomNumber();
     int Floor = 0;
     if(RoomNumber >= 13)
     {
@@ -128,56 +386,94 @@ void MainWindow::LoadBooking(Booking *booking, int RoomNumber)
         //Check-out date: %Date%
     ui->label_5->setText("Check-out date: "+booking->getCheckoutDate().date().toString("dd MMM yyyy"));
         //Room %Number% ( Floor: %Floor%)
-    if(date > booking->getCheckoutDate())
+    if(booking->getCheckoutDate() >= date)
     {
-        ui->label_5->setStyleSheet("color:red;");
+        if(date > booking->getCheckoutDate())
+        {
+            ui->label_5->setStyleSheet("color:red;");
+        }else
+        {
+            ui->label_5->setStyleSheet("color:green;");
+        }
     }else
     {
-        ui->label_5->setStyleSheet("color:green;");
+        if(this->Themes.IsWhite())
+        {
+            ui->label_5->setStyleSheet("color:black;");
+        }else
+        {
+            ui->label_5->setStyleSheet("color:white;");
+        }
     }
     ui->label_10->setText("Room "+QString::fromStdString(std::to_string(RoomNumber))+
                           " ( Floor "+QString::fromStdString(std::to_string(Floor))+" )");
-    // %Name% (%Email%) (%Phone number%)
+
     ui->label_2->setText(booking->getBookerName()+ " ( "
                          + booking->getBookerEmail()+" ) "
                          + "( " + booking->getBookerPhonenumber() +" )");
 
-
-    booking->AddNote("Caller ask about status.");
-    booking->AddNote("VIP PERSON");
     ui->textEdit->setText(booking->getNotes());
-    for(int i = 0 ; i < booking->getCustomers().size(); ++i)
+
+
+    if(booking->getCustomers().empty())
     {
-        Customer customer = booking->getCustomers()[i];
-        int RowCount = ui->tableWidget->rowCount();
-        if(i > RowCount-1)
+        ui->tableWidget->clearContents();
+        ui->tableWidget->setRowCount(0);
+    }
+    else
+    {
+        for(int i = 0 ; i < booking->getCustomers().size(); ++i)
         {
-            ui->tableWidget->insertRow(RowCount); // Insert at the end
+            Customer customer = booking->getCustomers()[i];
+            int RowCount = ui->tableWidget->rowCount();
+            if(i > RowCount-1)
+            {
+                ui->tableWidget->insertRow(RowCount); // Insert at the end
+            }
+            ui->tableWidget->setItem(i,0,new QTableWidgetItem(customer.getName()));
+            ui->tableWidget->item(i,0)->setFlags(ui->tableWidget->item(i,0)->flags() & ~Qt::ItemIsEditable);
+
+            ui->tableWidget->setItem(i,1,new QTableWidgetItem(customer.getDob().toString("dd.MM.yyyy")));
+            ui->tableWidget->item(i,1)->setFlags(ui->tableWidget->item(i,1)->flags() & ~Qt::ItemIsEditable);
+
+            ui->tableWidget->setItem(i,2,new QTableWidgetItem(customer.getPhonenumber()));
+            ui->tableWidget->item(i,2)->setFlags(ui->tableWidget->item(i,2)->flags() & ~Qt::ItemIsEditable);
+
+            ui->tableWidget->setItem(i,3,new QTableWidgetItem(customer.getDocumentNumber()));
+            ui->tableWidget->item(i,3)->setFlags(ui->tableWidget->item(i,3)->flags() & ~Qt::ItemIsEditable);
+
+            ui->tableWidget->setItem(i,4,new QTableWidgetItem(customer.getDocumentType()));
+            ui->tableWidget->item(i,4)->setFlags(ui->tableWidget->item(i,4)->flags() & ~Qt::ItemIsEditable);
+
+            for(int ColumnIndex = 0; ColumnIndex < ui->tableWidget->columnCount();++ColumnIndex)
+            {
+                ui->tableWidget->item(i,ColumnIndex)->setBackground(QColor(customer.getCheckedIn() ? 0x1C7D17 : 0x545454));
+                //0x1C7D17)) : item->setBackground(QColor(0x545454));
+            }
+
         }
-        ui->tableWidget->setItem(i,0,new QTableWidgetItem(customer.getName()));
-
-        ui->tableWidget->setItem(i,1,new QTableWidgetItem(customer.getDob().toString("dd.MM.yyyy")));
-
-        ui->tableWidget->setItem(i,2,new QTableWidgetItem(customer.getPhonenumber()));
-
-        ui->tableWidget->setItem(i,3,new QTableWidgetItem(customer.getDocumentNumber()));
-
-        ui->tableWidget->setItem(i,4,new QTableWidgetItem(customer.getDocumentType()));
     }
 
-    for(int i = 0 ; i < booking->getPayments().size(); ++i)
+    if(booking->getPayments().empty())
     {
-        Payment payment = booking->getPayments()[i];
-        int RowCount = ui->tableWidget_2->rowCount();
-        if(i > RowCount-1)
+        ui->tableWidget_2->clearContents();
+        ui->tableWidget_2->setRowCount(0);
+    }else
+    {
+        for(int i = 0 ; i < booking->getPayments().size(); ++i)
         {
-            ui->tableWidget_2->insertRow(RowCount); // Insert at the end
+            Payment payment = booking->getPayments()[i];
+            int RowCount = ui->tableWidget_2->rowCount();
+            if(i > RowCount-1)
+            {
+                ui->tableWidget_2->insertRow(RowCount); // Insert at the end
+            }
+            ui->tableWidget_2->setItem(i,0,new QTableWidgetItem(QString::fromStdString(QString::number(payment.getAmount(),'f',2).toStdString())));
+
+            ui->tableWidget_2->setItem(i,1,new QTableWidgetItem(payment.getCurrency()));
+
+            ui->tableWidget_2->setItem(i,2,new QTableWidgetItem(payment.getMethod()));
         }
-        ui->tableWidget_2->setItem(i,0,new QTableWidgetItem(QString::fromStdString(QString::number(payment.getAmount(),'f',2).toStdString())));
-
-        ui->tableWidget_2->setItem(i,1,new QTableWidgetItem(payment.getCurrency()));
-
-        ui->tableWidget_2->setItem(i,2,new QTableWidgetItem(payment.getMethod()));
     }
 }
 void MainWindow::SetHotelMapPage(){
@@ -187,7 +483,7 @@ void MainWindow::SetHotelMapPage(){
     {
         if(obj->objectName().contains("Room"))
         {
-            qDebug() << "Found room: "<<obj->objectName();
+            //qDebug() << "Found room: "<<obj->objectName();
             connect(obj,&QPushButton::clicked,this,[this,obj](){
                 OnRoomInfoRequested(obj->objectName());
             });

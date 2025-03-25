@@ -31,14 +31,15 @@ public:
     QString getBookerPhonenumber() const;
     void setBookerPhonenumber(const QString &newBookerPhonenumber);
 
-    QVector<Customer> getCustomers() const;
+    QVector<Customer>& getCustomers();
     void setCustomers(const QVector<Customer> &newCustomers);
+    Customer* getCustomerByName(QString Name);
     void addCustomer(Customer customer);
 
     QString getBookingNumber() const;
     void setBookingNumber(const QString &newBookingNumber);
 
-    QVector<Payment> getPayments() const;
+    QVector<Payment>& getPayments();
     void setPayments(const QVector<Payment> &newPayments);
     void addPayment(Payment payment);
 
@@ -46,6 +47,9 @@ public:
     void AddNote(QString param);
     void setNotes(const QString &newNotes);
 
+    void Clear();
+
+    void Print();
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;

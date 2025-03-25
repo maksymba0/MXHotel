@@ -1,0 +1,63 @@
+[33mcommit 66c3a9ca9a2ac730e01bd1a651f601a5823b59b6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Tue Mar 25 23:57:49 2025 +0100
+
+    Updated booking page.
+
+[33mcommit 8976c3c4f2da682c23cab6d7a73dcb6e464ce010[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Tue Mar 25 00:00:55 2025 +0100
+
+    UI Update. Field Notes added and now UI updated.
+
+[33mcommit 685c1cdb4d132226e9c6c65d5d119185faf5db25[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Sun Mar 23 22:40:54 2025 +0100
+
+     1. Added Booking load func
+     2. Added Payment class
+     3. Improved Booking Customer table
+     4. Fixed dates formatting
+
+[33mcommit 965a8a99a0bc24c70c216cd4dcff94ef4e716be8[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Sat Mar 22 22:42:27 2025 +0100
+
+    Added interaction logic with Hotel Map buttons. Styling on Booking page.
+
+[33mcommit f228857a7c4157c9522ffbb02879990960b75945[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Fri Mar 21 23:09:06 2025 +0100
+
+    Readded commit. Added Hotel Map, Employees, Customers, Partners. Hotel map added 3/3 floors.
+
+[33mcommit e8d7e092950ec351134ab0e1cdf21f6233bce77a[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Wed Mar 19 21:18:02 2025 +0100
+
+    Booking Page modified. Added Theme selector
+
+[33mcommit 288eea5875480397e561ff9b6c9db9c65ea684f2[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Tue Mar 18 22:25:09 2025 +0100
+
+    Added TabWidget with TabButtons
+
+[33mcommit d1ec501f30377b5876fd067ae13a450bb5e53e2e[m
+Merge: a1fc279 d0e6bd5
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Tue Mar 18 20:59:08 2025 +0100
+
+    test
+
+[33mcommit a1fc279c261b7d29e5d4288ea51a36767e1ecf60[m
+Author: maksymba0 <maksyma.babiichuka@gmail.com>
+Date:   Tue Mar 18 20:51:46 2025 +0100
+
+    Initial commit - 1
+
+[33mcommit d0e6bd5baa3e47b7a692e64bad153fcedeffef55[m
+Author: maksymbofficial <154608230+maksymba0@users.noreply.github.com>
+Date:   Tue Mar 18 20:13:41 2025 +0100
+
+    Initial commit

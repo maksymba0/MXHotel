@@ -1,18 +1,26 @@
 #include "customer.h"
 
-Customer::Customer() {}
+Customer::Customer()
+{
+    setAge(0);
+    setCheckedIn(false);
+    setEmail("");
+    setPhonenumber("");
+    setName("");
+    setDocumentNumber("");
+}
 
-QString Customer::getName() const
+QString Customer::getName()
 {
     return name;
 }
 
-QString Customer::getEmail() const
+QString Customer::getEmail()
 {
     return email;
 }
 
-QString Customer::getPhonenumber() const
+QString Customer::getPhonenumber()
 {
     return phonenumber;
 }
@@ -22,12 +30,12 @@ void Customer::setPhonenumber(const QString &newPhonenumber)
     phonenumber = newPhonenumber;
 }
 
-int Customer::getAge() const
+int Customer::getAge()
 {
     return age;
 }
 
-QDate Customer::getDob() const
+QDate Customer::getDob()
 {
     return dob;
 }
@@ -52,7 +60,7 @@ void Customer::setDob(const QDate &newDob)
     dob = newDob;
 }
 
-QString Customer::getDocumentType() const
+QString Customer::getDocumentType()
 {
     return DocumentType;
 }
@@ -62,7 +70,7 @@ void Customer::setDocumentType(const QString &newDocumentType)
     DocumentType = newDocumentType;
 }
 
-QString Customer::getDocumentNumber() const
+QString Customer::getDocumentNumber()
 {
     return DocumentNumber;
 }
@@ -70,4 +78,14 @@ QString Customer::getDocumentNumber() const
 void Customer::setDocumentNumber(const QString &newDocumentNumber)
 {
     DocumentNumber = newDocumentNumber;
+}
+
+bool Customer::getCheckedIn()
+{
+    return checkedIn;
+}
+
+void Customer::setCheckedIn(bool newCheckedIn)
+{
+    checkedIn = newCheckedIn;
 }

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTableWidgetItem>
 #include <thememanager.h>
 #include "booking.h"
 #include "payment.h"
@@ -22,7 +23,8 @@ public:
 
     //Booking Page
     void SetBookingPage();
-    void LoadBooking(Booking* booking, int RoomNumber);
+    void LoadBooking();
+
 
     //Hotel Map Page
     void SetHotelMapPage();
@@ -42,11 +44,24 @@ public:
 
     QString RandomBookingNumber();
     Payment RandomPayment();
+    Booking* getBooking();
+    void setBooking(const Booking &newBooking);
+
 private slots:
     void UpdateTheme(int Index);
     void OnRoomInfoRequested(QString RoomName);
+    void OnTableItemEditable(QTableWidgetItem* item);
+
+    void OnCustomerBanned();
+    void OnCustomerCreated();
+    void OnCustomerRemoved();
+    void OnCustomerCheckedOut();
+    void OnCustomerCheckedIn();
+    void OnSavedChanges();
+    void OnNewBooking();
 
 private:
+    Booking booking;
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

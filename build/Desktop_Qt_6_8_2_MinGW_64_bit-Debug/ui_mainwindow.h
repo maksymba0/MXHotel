@@ -52,6 +52,7 @@ public:
     QGroupBox *groupBox_3;
     QTableWidget *tableWidget_2;
     QLabel *label_10;
+    QPushButton *pushButton_7;
     QWidget *tab_2;
     QTabWidget *tabWidget_2;
     QWidget *tab_9;
@@ -411,6 +412,9 @@ public:
         label_10 = new QLabel(tab);
         label_10->setObjectName("label_10");
         label_10->setGeometry(QRect(260, 100, 281, 31));
+        pushButton_7 = new QPushButton(tab);
+        pushButton_7->setObjectName("pushButton_7");
+        pushButton_7->setGeometry(QRect(1070, 50, 71, 31));
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName("tab_2");
@@ -818,6 +822,7 @@ public:
         QTableWidgetItem *___qtablewidgetitem7 = tableWidget_2->horizontalHeaderItem(2);
         ___qtablewidgetitem7->setText(QCoreApplication::translate("MainWindow", "Method", nullptr));
         label_10->setText(QCoreApplication::translate("MainWindow", "Room --- (Floor: --- )", nullptr));
+        pushButton_7->setText(QCoreApplication::translate("MainWindow", "NEW", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Booking", nullptr));
         label_9->setText(QString());
         BookingRoom_0->setText(QCoreApplication::translate("MainWindow", "Booking", nullptr));

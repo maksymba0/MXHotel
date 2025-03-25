@@ -4,15 +4,7 @@
 #include <QDateTime>
 Booking::Booking()
 {
-    this->setBookingNumber("");
-    bookingNumber = "";
-    this->setBookerEmail("");
-    this->setBookerName("");
-    QDateTime time;
-    this->setCheckedinDate(time);
-    this->setCheckoutDate(time);
-    this->setCreatedDate(time);
-    this->setRoomNumber(0);
+    Clear();
 }
 
 QDateTime Booking::getCreatedDate() const
@@ -85,7 +77,7 @@ void Booking::setBookerPhonenumber(const QString &newBookerPhonenumber)
     bookerPhonenumber = newBookerPhonenumber;
 }
 
-QVector<Customer> Booking::getCustomers() const
+QVector<Customer>& Booking::getCustomers()
 {
     return customers;
 }
@@ -93,6 +85,18 @@ QVector<Customer> Booking::getCustomers() const
 void Booking::setCustomers(const QVector<Customer> &newCustomers)
 {
     customers = newCustomers;
+}
+
+Customer *Booking::getCustomerByName(QString Name)
+{
+    for(auto& customer : customers)
+    {
+        if(customer.getName() == Name)
+        {
+            return &customer;
+        }
+    }
+    return nullptr;
 }
 
 void Booking::addCustomer(Customer customer)
@@ -121,7 +125,7 @@ void Booking::setBookingNumber(const QString &newBookingNumber)
     }
 }
 
-QVector<Payment> Booking::getPayments() const
+QVector<Payment>& Booking::getPayments()
 {
     return payments;
 }
@@ -153,6 +157,47 @@ void Booking::AddNote(QString param)
 void Booking::setNotes(const QString &newNotes)
 {
     notes = newNotes;
+}
+
+void Booking::Clear()
+{
+    bookingNumber = "";
+    this->setBookerPhonenumber("");
+    this->setBookerEmail("");
+    this->setBookerName("");
+    QDateTime date;
+    this->setCheckedinDate(date);
+    this->setCheckoutDate(date);
+    this->setCreatedDate(QDateTime::currentDateTime());
+    this->setRoomNumber(-1);
+    this->setNotes("");
+    this->getCustomers().erase(getCustomers().begin(),getCustomers().end());
+    this->getPayments().clear();
+
+}
+
+void Booking::Print() {
+    qDebug() << "CreatedDate: " << CreatedDate.toString("yyyy-MM-dd HH:mm:ss");
+    qDebug() << "CheckedinDate: " << (CheckedinDate.isValid() ? CheckedinDate.toString("yyyy-MM-dd HH:mm:ss") : "Not set");
+    qDebug() << "CheckoutDate: " << (CheckoutDate.isValid() ? CheckoutDate.toString("yyyy-MM-dd HH:mm:ss") : "Not set");
+
+    qDebug() << "RoomNumber: " << RoomNumber;
+    qDebug() << "BookingNumber: " << bookingNumber;
+    qDebug() << "BookerName: " << bookerName;
+    qDebug() << "BookerEmail: " << bookerEmail;
+    qDebug() << "BookerPhonenumber: " << bookerPhonenumber;
+
+    qDebug() << "Payments:";
+    for (const auto& payment : payments) {
+        qDebug() << "  - Amount: " << payment.getAmount(); // Assuming Payment has a getAmount() method
+    }
+
+    qDebug() << "Customers:";
+    for (auto& customer : customers) {
+        qDebug() << "  - Name: " << customer.getName() << ", Age: " << customer.getAge(); // Assuming Customer has getName() and getAge()
+    }
+
+    qDebug() << "Notes: " << (!notes.isEmpty() ? notes : "No notes");
 }
 
 Booking::Booking(const QDateTime &CreatedDate, const QDateTime &CheckedinDate, const QDateTime &CheckoutDate, int RoomNumber, const QString &bookerName, const QString &bookerEmail, const QString &bookerPhonenumber, const QVector<Customer> &customers) : CreatedDate(CreatedDate),
