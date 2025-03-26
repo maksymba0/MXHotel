@@ -41,6 +41,7 @@ public:
 
     QVector<Payment>& getPayments();
     void setPayments(const QVector<Payment> &newPayments);
+    Payment* getPayment(Payment&);
     void addPayment(Payment payment);
 
     QString getNotes() const;

@@ -2,9 +2,9 @@
 #include "qdebug.h"
 #include <QRandomGenerator>
 Payment::Payment() {
-    setCurrency("");
+    setCurrency(" ");
     setAmount(0.0);
-    setMethod("");
+    setMethod(" ");
 }
 
 QString Payment::getCurrency() const

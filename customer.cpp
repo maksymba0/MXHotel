@@ -2,7 +2,9 @@
 
 Customer::Customer()
 {
-    setAge(0);
+    QDate date = QDate::currentDate();
+    date.setDate(2000,1,1);
+    setDob(date);
     setCheckedIn(false);
     setEmail("");
     setPhonenumber("");
@@ -50,14 +52,15 @@ void Customer::setEmail(const QString &newEmail)
     email = newEmail;
 }
 
-void Customer::setAge(int newAge)
+void Customer::setAge()
 {
-    age = newAge;
+    age = getDob().daysTo(QDate::currentDate()) / 365;
 }
 
 void Customer::setDob(const QDate &newDob)
 {
     dob = newDob;
+    setAge();
 }
 
 QString Customer::getDocumentType()

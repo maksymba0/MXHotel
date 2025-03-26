@@ -51,6 +51,7 @@ private slots:
     void UpdateTheme(int Index);
     void OnRoomInfoRequested(QString RoomName);
     void OnTableItemEditable(QTableWidgetItem* item);
+    void OnTableItemChanged(QTableWidgetItem* item);
 
     void OnCustomerBanned();
     void OnCustomerCreated();
@@ -60,8 +61,12 @@ private slots:
     void OnSavedChanges();
     void OnNewBooking();
 
+    void OnPaymentAdded();
+    void OnPaymentRemoved();
+
 private:
     Booking booking;
     Ui::MainWindow *ui;
+
 };
 #endif // MAINWINDOW_H

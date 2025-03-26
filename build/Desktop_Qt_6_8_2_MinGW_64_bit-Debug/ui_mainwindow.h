@@ -51,6 +51,8 @@ public:
     QTextEdit *textEdit;
     QGroupBox *groupBox_3;
     QTableWidget *tableWidget_2;
+    QPushButton *pushButton_8;
+    QPushButton *pushButton_9;
     QLabel *label_10;
     QPushButton *pushButton_7;
     QWidget *tab_2;
@@ -382,7 +384,7 @@ public:
         pushButton_6->setGeometry(QRect(120, 50, 111, 29));
         pushButton = new QPushButton(tab);
         pushButton->setObjectName("pushButton");
-        pushButton->setGeometry(QRect(1030, 0, 121, 41));
+        pushButton->setGeometry(QRect(850, 10, 291, 41));
         label_7 = new QLabel(tab);
         label_7->setObjectName("label_7");
         label_7->setGeometry(QRect(260, 40, 281, 31));
@@ -395,7 +397,7 @@ public:
         textEdit->setGeometry(QRect(3, 20, 391, 198));
         groupBox_3 = new QGroupBox(tab);
         groupBox_3->setObjectName("groupBox_3");
-        groupBox_3->setGeometry(QRect(740, 90, 411, 201));
+        groupBox_3->setGeometry(QRect(740, 60, 411, 231));
         tableWidget_2 = new QTableWidget(groupBox_3);
         if (tableWidget_2->columnCount() < 3)
             tableWidget_2->setColumnCount(3);
@@ -406,15 +408,21 @@ public:
         QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
         tableWidget_2->setHorizontalHeaderItem(2, __qtablewidgetitem7);
         tableWidget_2->setObjectName("tableWidget_2");
-        tableWidget_2->setGeometry(QRect(9, 20, 401, 161));
+        tableWidget_2->setGeometry(QRect(10, 60, 401, 161));
         tableWidget_2->setRowCount(0);
         tableWidget_2->horizontalHeader()->setStretchLastSection(true);
+        pushButton_8 = new QPushButton(groupBox_3);
+        pushButton_8->setObjectName("pushButton_8");
+        pushButton_8->setGeometry(QRect(10, 20, 111, 29));
+        pushButton_9 = new QPushButton(groupBox_3);
+        pushButton_9->setObjectName("pushButton_9");
+        pushButton_9->setGeometry(QRect(150, 20, 111, 29));
         label_10 = new QLabel(tab);
         label_10->setObjectName("label_10");
         label_10->setGeometry(QRect(260, 100, 281, 31));
         pushButton_7 = new QPushButton(tab);
         pushButton_7->setObjectName("pushButton_7");
-        pushButton_7->setGeometry(QRect(1070, 50, 71, 31));
+        pushButton_7->setGeometry(QRect(740, 10, 101, 41));
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName("tab_2");
@@ -821,6 +829,8 @@ public:
         ___qtablewidgetitem6->setText(QCoreApplication::translate("MainWindow", "Currency", nullptr));
         QTableWidgetItem *___qtablewidgetitem7 = tableWidget_2->horizontalHeaderItem(2);
         ___qtablewidgetitem7->setText(QCoreApplication::translate("MainWindow", "Method", nullptr));
+        pushButton_8->setText(QCoreApplication::translate("MainWindow", "CREATE", nullptr));
+        pushButton_9->setText(QCoreApplication::translate("MainWindow", "REMOVE", nullptr));
         label_10->setText(QCoreApplication::translate("MainWindow", "Room --- (Floor: --- )", nullptr));
         pushButton_7->setText(QCoreApplication::translate("MainWindow", "NEW", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Booking", nullptr));

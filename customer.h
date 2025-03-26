@@ -9,7 +9,7 @@ public:
     Customer();
 
     bool operator==(const Customer& other) const {
-        return name == other.name && age == other.age && email == other.email;
+        return name == other.name && age == other.age && email == other.email && dob == other.dob;
     }
 
     QString getName();
@@ -27,7 +27,7 @@ public:
 
     void setEmail(const QString &newEmail);
 
-    void setAge(int newAge);
+    void setAge();
 
     void setDob(const QDate &newDob);
 

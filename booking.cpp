@@ -135,13 +135,22 @@ void Booking::setPayments(const QVector<Payment> &newPayments)
     payments = newPayments;
 }
 
+Payment *Booking::getPayment(Payment& obj)
+{
+    for(auto& payment : payments)
+    {
+        if(payment == obj)
+        {
+            return &payment;
+        }
+    }
+    return nullptr;
+}
+
 void Booking::addPayment(Payment payment)
 {
-    if(!payments.contains(payment))
-    {
-        payments.push_back(payment);
-        qDebug() << "Added payment;";
-    }
+    payments.push_back(payment);
+    qDebug() << "Added payment;";
 }
 
 QString Booking::getNotes() const

@@ -1260,9 +1260,9 @@
      <widget class="QPushButton" name="pushButton">
       <property name="geometry">
        <rect>
-        <x>1030</x>
-        <y>0</y>
-        <width>121</width>
+        <x>850</x>
+        <y>10</y>
+        <width>291</width>
         <height>41</height>
        </rect>
       </property>
@@ -1315,9 +1315,9 @@
       <property name="geometry">
        <rect>
         <x>740</x>
-        <y>90</y>
+        <y>60</y>
         <width>411</width>
-        <height>201</height>
+        <height>231</height>
        </rect>
       </property>
       <property name="title">
@@ -1326,8 +1326,8 @@
       <widget class="QTableWidget" name="tableWidget_2">
        <property name="geometry">
         <rect>
-         <x>9</x>
-         <y>20</y>
+         <x>10</x>
+         <y>60</y>
          <width>401</width>
          <height>161</height>
         </rect>
@@ -1354,6 +1354,32 @@
         </property>
        </column>
       </widget>
+      <widget class="QPushButton" name="pushButton_8">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>111</width>
+         <height>29</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>CREATE</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_9">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>20</y>
+         <width>111</width>
+         <height>29</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>REMOVE</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QLabel" name="label_10">
       <property name="geometry">
@@ -1371,10 +1397,10 @@
      <widget class="QPushButton" name="pushButton_7">
       <property name="geometry">
        <rect>
-        <x>1070</x>
-        <y>50</y>
-        <width>71</width>
-        <height>31</height>
+        <x>740</x>
+        <y>10</y>
+        <width>101</width>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
