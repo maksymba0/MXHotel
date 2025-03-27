@@ -512,13 +512,15 @@ void MainWindow::OnPaymentRemoved()
         {
             Rows.insert(item->row());
         }
-        for(auto& row : Rows)
+        qDebug() << "Selected rows: " << Rows.size();
+        for(int i = Rows.size() -1; i >= 0; --i)
         {
-            Payment* payment = &getBooking()->getPayments()[row];
+            qDebug() << "Trying to access Payments["<<i<<" ] while Payments contains only "<<getBooking()->getPayments().size() << " elements";
+            Payment* payment = &getBooking()->getPayments()[i];
             if(payment)
             {
                 getBooking()->getPayments().removeOne(*payment);
-                paymentTable->removeRow(row);
+                paymentTable->removeRow(i);
             }
         }
     }
