@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     booking.cpp \
     customer.cpp \
+    employee.cpp \
     main.cpp \
     mainwindow.cpp \
     payment.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
 HEADERS += \
     booking.h \
     customer.h \
+    employee.h \
     mainwindow.h \
     payment.h \
     thememanager.h

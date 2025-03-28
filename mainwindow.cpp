@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include "employee.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -699,7 +700,12 @@ void MainWindow::SetHotelMapPage(){
     }
 
 }
+
 void MainWindow::SetEmployeesPage(){
+
+    Employee employee("Maksy Creator","admin");
+    employee.Print();
+
 
 }
 void MainWindow::SetCustomersPage(){
