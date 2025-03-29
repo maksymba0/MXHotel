@@ -51,6 +51,18 @@ public:
     void Clear();
 
     void Print();
+    bool getIsBeingCreated() const;
+    void setIsBeingCreated(bool newIsBeingCreated);
+
+    bool getIsModified() const;
+    void setIsModified(bool newIsModified);
+
+    bool IsValid()
+    {
+        return RoomNumber != -1&& // valid room
+               bookingNumber != "" && // valid booking number
+               !customers.empty(); // valid customer data
+    }
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;
@@ -67,6 +79,9 @@ protected:
     QVector<Customer> customers;
 
     QString notes;
+
+    bool isBeingCreated;
+    bool IsModified;
 };
 
 #endif // BOOKING_H

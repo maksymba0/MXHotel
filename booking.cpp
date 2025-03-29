@@ -182,6 +182,8 @@ void Booking::Clear()
     this->setNotes("");
     this->getCustomers().erase(getCustomers().begin(),getCustomers().end());
     this->getPayments().clear();
+    this->setIsBeingCreated(true);
+    this->setIsModified(false);
 
 }
 
@@ -198,15 +200,35 @@ void Booking::Print() {
 
     qDebug() << "Payments:";
     for (const auto& payment : payments) {
-        qDebug() << "  - Amount: " << payment.getAmount(); // Assuming Payment has a getAmount() method
+        qDebug() << "  - Amount: " << payment.getAmount();
     }
 
     qDebug() << "Customers:";
     for (auto& customer : customers) {
-        qDebug() << "  - Name: " << customer.getName() << ", Age: " << customer.getAge(); // Assuming Customer has getName() and getAge()
+        qDebug() << "  - Name: " << customer.getName() << ", Age: " << customer.getAge();
     }
 
     qDebug() << "Notes: " << (!notes.isEmpty() ? notes : "No notes");
+}
+
+bool Booking::getIsBeingCreated() const
+{
+    return isBeingCreated;
+}
+
+void Booking::setIsBeingCreated(bool newIsBeingCreated)
+{
+    isBeingCreated = newIsBeingCreated;
+}
+
+bool Booking::getIsModified() const
+{
+    return IsModified;
+}
+
+void Booking::setIsModified(bool newIsModified)
+{
+    IsModified = newIsModified;
 }
 
 Booking::Booking(const QDateTime &CreatedDate, const QDateTime &CheckedinDate, const QDateTime &CheckoutDate, int RoomNumber, const QString &bookerName, const QString &bookerEmail, const QString &bookerPhonenumber, const QVector<Customer> &customers) : CreatedDate(CreatedDate),

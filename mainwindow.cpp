@@ -93,6 +93,7 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     customer.setCheckedIn(false);
     booking->addCustomer(customer);
 
+    booking->setIsBeingCreated(false);
 
     for(int i = 0; i < 3; i++)
     {
@@ -104,7 +105,12 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     // Changing data on Hotel Map page
 
     this->setBooking(*booking);
+    ui->tableWidget_2->blockSignals(true);
+        ui->tableWidget->blockSignals(true);
     LoadBooking();
+
+        ui->tableWidget_2->blockSignals(false);
+        ui->tableWidget->blockSignals(false );
 }
 
 void MainWindow::OnTableItemEditable(QTableWidgetItem *item)
@@ -202,8 +208,11 @@ void MainWindow::OnTableItemChanged(QTableWidgetItem* item)
             customer->setDocumentType(item->text());
             break;
         }
+        getBooking()->setIsModified(true);
         qDebug() << "Successfully changed data for " << customer->getName();
+
         booking.Print();
+
     }else if(item->tableWidget() == ui->tableWidget_2) // PAYMENT TABLE
     {
         qDebug() << "Payment table";
@@ -228,6 +237,7 @@ void MainWindow::OnTableItemChanged(QTableWidgetItem* item)
                 payment->setMethod(ui->tableWidget_2->item(row,2)->text()); // method;
                 break;
             }
+            getBooking()->setIsModified(true);
         }
     }
 
@@ -237,6 +247,50 @@ void MainWindow::OnTableItemChanged(QTableWidgetItem* item)
 void MainWindow::OnSavedChanges()
 {
     qDebug() << "OnSavedChanges";
+    if(!getBooking()->IsValid())
+    {
+        QMessageBox::warning(this,"Save changes- failed","Trying to save an empty booking. \nPlease use 'NEW' to create a new booking.");
+        return;
+    }
+    if(getBooking()->getIsBeingCreated())
+    {
+        auto reply = QMessageBox::question(this, "Save changes", QString("New booking %d% for %y% customers will be created. Are you sure you want to do this?").replace("%y%",QString::number(getBooking()->getCustomers().size())).
+                                                    replace("%d%",getBooking()->getBookingNumber()));
+        switch(reply)
+        {
+        case QMessageBox::Yes:
+            QMessageBox::information(this,"Save change - success","Booking has been created.");
+            break;
+        case QMessageBox::No:
+        default:
+            break;
+
+        }
+
+        // This is a new booking, we will send a request to create a new booking on the database
+    }else
+    {
+        if(getBooking()->getIsModified())
+        {
+            auto reply = QMessageBox::question(this, "Save changes", QString("You are trying to save the booking %d% for %y% customers with some changes. Are you sure you want to do it?").replace("%y%",QString::number(getBooking()->getCustomers().size())).
+                                                                     replace("%d%",getBooking()->getBookingNumber()));
+            switch(reply)
+            {
+            case QMessageBox::Yes:
+                QMessageBox::information(this,"Save change - success","Booking has been updated.");
+                break;
+            case QMessageBox::No:
+            default:
+                break;
+
+            }
+        }else
+        {
+            QMessageBox::warning(this,"Save changes - failed", "Cannot save booking with no changes done.");
+        }
+        // This is a booking that we retrieved from the db, that we are editing.
+    }
+
 }
 void MainWindow::OnCustomerBanned()
 {
@@ -274,7 +328,7 @@ void MainWindow::OnCustomerCreated(){
         }
     }
     QMessageBox::about(this,"Customer Created","Please make sure to add data to the customer.");
-
+    getBooking()->setIsModified(true);
     LoadBooking();
 }
 void MainWindow::OnCustomerRemoved(){
@@ -294,7 +348,6 @@ void MainWindow::OnCustomerRemoved(){
             return;
         }
         auto NameWidget = ui->tableWidget->item(RowMax-1,0);
-        qDebug() << "RowMax is "<<RowMax << " but NameWidget is "<< NameWidget;
         if(!NameWidget)
         {
             return;
@@ -315,6 +368,7 @@ void MainWindow::OnCustomerRemoved(){
              getBooking()->getCustomers().removeOne(*customer);
              if(IsSuccess)
                  QMessageBox::information(this,"REMOVE SUCCESS",customer->getName() + " has been removed!");
+            getBooking()->setIsModified(true);
              ui->tableWidget->removeRow(RowMax-1);
          }else
          {
@@ -348,8 +402,11 @@ void MainWindow::OnCustomerRemoved(){
         ui->tableWidget->removeRow(Row);
         getBooking()->getCustomers().removeOne(*customer);
         if(IsSuccess)
-            QMessageBox::information(this,"REMOVE SUCCESS",name + " has been removed!");
+        {
 
+            QMessageBox::information(this,"REMOVE SUCCESS",name + " has been removed!");
+            getBooking()->setIsModified(true);
+        }
     }
 }
 void MainWindow::OnCustomerCheckedOut(){
@@ -396,7 +453,10 @@ void MainWindow::OnCustomerCheckedOut(){
 
         }
         if(IsSuccess)
+        {
             QMessageBox::information(this,"CHECK-OUT SUCCESS",customer->getName() + " has been checked out!");
+            getBooking()->setIsModified(true);
+        }
 
     }
 }
@@ -442,8 +502,11 @@ void MainWindow::OnCustomerCheckedIn(){
             item->setBackground(QColor(0x1C7D17));
         }
         if(IsSuccess)
-            QMessageBox::information(this,"CHECK-IN SUCCESS",customer->getName() + " has been checked in!");
+        {
 
+            QMessageBox::information(this,"CHECK-IN SUCCESS",customer->getName() + " has been checked in!");
+            getBooking()->setIsModified(true);
+        }
     }
 }
 
@@ -451,6 +514,7 @@ void MainWindow::OnNewBooking()
 {
     getBooking()->Clear();
     getBooking()->Print();
+    getBooking()->setIsBeingCreated(true);
     LoadBooking();
 }
 
@@ -476,6 +540,8 @@ void MainWindow::OnPaymentAdded()
 
     QTableWidgetItem* paymentMethod= new QTableWidgetItem(" ");
     paymentTable->setItem(paymentTable->rowCount()-1,2,paymentMethod);
+
+    getBooking()->setIsModified(true);
 
 
 }
@@ -505,6 +571,7 @@ void MainWindow::OnPaymentRemoved()
         {
             getBooking()->getPayments().removeOne(payment);
             paymentTable->removeRow(paymentTable->rowCount()-1);
+            getBooking()->setIsModified(true);
         }
     }
     else
@@ -513,15 +580,14 @@ void MainWindow::OnPaymentRemoved()
         {
             Rows.insert(item->row());
         }
-        qDebug() << "Selected rows: " << Rows.size();
         for(int i = Rows.size() -1; i >= 0; --i)
         {
-            qDebug() << "Trying to access Payments["<<i<<" ] while Payments contains only "<<getBooking()->getPayments().size() << " elements";
             Payment* payment = &getBooking()->getPayments()[i];
             if(payment)
             {
                 getBooking()->getPayments().removeOne(*payment);
                 paymentTable->removeRow(i);
+                getBooking()->setIsModified(true);
             }
         }
     }
@@ -575,6 +641,7 @@ void MainWindow::SetBookingPage()
 
 void MainWindow::LoadBooking()
 {
+    this->blockSignals(true);
     Booking* booking = getBooking();
     int RoomNumber = booking->getRoomNumber();
     int Floor = 0;
@@ -684,6 +751,8 @@ void MainWindow::LoadBooking()
             ui->tableWidget_2->setItem(i,2,new QTableWidgetItem(payment.getMethod()));
         }
     }
+
+    this->blockSignals(false);
 }
 void MainWindow::SetHotelMapPage(){
 
