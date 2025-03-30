@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     booking.cpp \
+    calendardialog.cpp \
     customer.cpp \
     employee.cpp \
     main.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
 
 HEADERS += \
     booking.h \
+    calendardialog.h \
     customer.h \
     employee.h \
     mainwindow.h \

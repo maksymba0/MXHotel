@@ -184,6 +184,7 @@ void Booking::Clear()
     this->getPayments().clear();
     this->setIsBeingCreated(true);
     this->setIsModified(false);
+    this->setIsChangingRoom(false);
 
 }
 
@@ -229,6 +230,16 @@ bool Booking::getIsModified() const
 void Booking::setIsModified(bool newIsModified)
 {
     IsModified = newIsModified;
+}
+
+bool Booking::getIsChangingRoom() const
+{
+    return IsChangingRoom;
+}
+
+void Booking::setIsChangingRoom(bool newIsChangingRoom)
+{
+    IsChangingRoom = newIsChangingRoom;
 }
 
 Booking::Booking(const QDateTime &CreatedDate, const QDateTime &CheckedinDate, const QDateTime &CheckoutDate, int RoomNumber, const QString &bookerName, const QString &bookerEmail, const QString &bookerPhonenumber, const QVector<Customer> &customers) : CreatedDate(CreatedDate),

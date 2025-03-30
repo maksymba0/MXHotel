@@ -1,0 +1,10 @@
+debug/booking.o
+debug/calendardialog.o
+debug/customer.o
+debug/employee.o
+debug/main.o
+debug/mainwindow.o
+debug/payment.o
+debug/thememanager.o
+debug/moc_calendardialog.o
+debug/moc_mainwindow.o

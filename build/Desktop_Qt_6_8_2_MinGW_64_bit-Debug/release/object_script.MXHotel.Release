@@ -1,0 +1,10 @@
+release/booking.o
+release/calendardialog.o
+release/customer.o
+release/employee.o
+release/main.o
+release/mainwindow.o
+release/payment.o
+release/thememanager.o
+release/moc_calendardialog.o
+release/moc_mainwindow.o

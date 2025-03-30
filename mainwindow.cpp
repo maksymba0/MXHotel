@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include "calendardialog.h"
 #include "employee.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -518,6 +519,35 @@ void MainWindow::OnNewBooking()
     LoadBooking();
 }
 
+void MainWindow::OnChangingRoom()
+{
+    ui->tabWidget->setCurrentIndex(1);// HotelMap
+    getBooking()->setIsChangingRoom(true);
+}
+
+void MainWindow::OnCheckOutDateChanged()
+{
+    CalendarDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QDate selectedDate = dialog.getSelectedDate();
+        QDateTime dateTime = QDateTime::fromString(selectedDate.toString("yyyy-MM-dd"), "yyyy-MM-dd");
+        qDebug() << "Selected date: " << selectedDate.toString("dd.MM.yyyy");
+        getBooking()->setCheckoutDate(dateTime);
+    }
+}
+
+void MainWindow::OnCheckInDateChanged()
+{
+    CalendarDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QDate selectedDate = dialog.getSelectedDate();
+        QDateTime dateTime = QDateTime::fromString(selectedDate.toString("yyyy-MM-dd"), "yyyy-MM-dd");
+        qDebug() << "Selected date: " << selectedDate.toString("dd.MM.yyyy");
+        getBooking()->setCheckedinDate(dateTime);
+    }
+}
+
+
 void MainWindow::OnPaymentAdded()
 {
     auto paymentTable = ui->tableWidget_2;
@@ -632,7 +662,12 @@ void MainWindow::SetBookingPage()
     connect(ui->pushButton_6,&QPushButton::clicked,this,&MainWindow::OnCustomerBanned);
     // new booking, reset
     connect(ui->pushButton_7,&QPushButton::clicked,this,&MainWindow::OnNewBooking);
-
+    // change room
+    connect(ui->pushButton_10, &QPushButton::clicked,this,&MainWindow::OnChangingRoom);
+    // change checkout date
+    connect(ui->pushButton_11, &QPushButton::clicked,this,&MainWindow::OnCheckInDateChanged);
+    // change checkin date
+    connect(ui->pushButton_12, &QPushButton::clicked,this,&MainWindow::OnCheckOutDateChanged);
     // payment, create remove
     connect(ui->pushButton_8,&QPushButton::clicked,this,&MainWindow::OnPaymentAdded);
     connect(ui->pushButton_9,&QPushButton::clicked,this,&MainWindow::OnPaymentRemoved);

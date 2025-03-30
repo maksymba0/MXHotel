@@ -55,6 +55,9 @@ public:
     QPushButton *pushButton_9;
     QLabel *label_10;
     QPushButton *pushButton_7;
+    QPushButton *pushButton_10;
+    QPushButton *pushButton_11;
+    QPushButton *pushButton_12;
     QWidget *tab_2;
     QTabWidget *tabWidget_2;
     QWidget *tab_9;
@@ -423,6 +426,15 @@ public:
         pushButton_7 = new QPushButton(tab);
         pushButton_7->setObjectName("pushButton_7");
         pushButton_7->setGeometry(QRect(740, 10, 101, 41));
+        pushButton_10 = new QPushButton(tab);
+        pushButton_10->setObjectName("pushButton_10");
+        pushButton_10->setGeometry(QRect(470, 100, 61, 31));
+        pushButton_11 = new QPushButton(tab);
+        pushButton_11->setObjectName("pushButton_11");
+        pushButton_11->setGeometry(QRect(470, 70, 61, 31));
+        pushButton_12 = new QPushButton(tab);
+        pushButton_12->setObjectName("pushButton_12");
+        pushButton_12->setGeometry(QRect(470, 40, 61, 31));
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName("tab_2");
@@ -833,6 +845,9 @@ public:
         pushButton_9->setText(QCoreApplication::translate("MainWindow", "REMOVE", nullptr));
         label_10->setText(QCoreApplication::translate("MainWindow", "Room --- (Floor: --- )", nullptr));
         pushButton_7->setText(QCoreApplication::translate("MainWindow", "NEW", nullptr));
+        pushButton_10->setText(QCoreApplication::translate("MainWindow", "Select", nullptr));
+        pushButton_11->setText(QCoreApplication::translate("MainWindow", "Select", nullptr));
+        pushButton_12->setText(QCoreApplication::translate("MainWindow", "Select", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Booking", nullptr));
         label_9->setText(QString());
         BookingRoom_0->setText(QCoreApplication::translate("MainWindow", "Booking", nullptr));

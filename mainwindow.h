@@ -60,6 +60,9 @@ private slots:
     void OnCustomerCheckedIn();
     void OnSavedChanges();
     void OnNewBooking();
+    void OnChangingRoom();
+    void OnCheckOutDateChanged();
+    void OnCheckInDateChanged();
 
     void OnPaymentAdded();
     void OnPaymentRemoved();

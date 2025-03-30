@@ -63,6 +63,9 @@ public:
                bookingNumber != "" && // valid booking number
                !customers.empty(); // valid customer data
     }
+    bool getIsChangingRoom() const;
+    void setIsChangingRoom(bool newIsChangingRoom);
+
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;
@@ -82,6 +85,7 @@ protected:
 
     bool isBeingCreated;
     bool IsModified;
+    bool IsChangingRoom;
 };
 
 #endif // BOOKING_H
