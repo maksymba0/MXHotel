@@ -171,9 +171,9 @@ void Booking::setNotes(const QString &newNotes)
 void Booking::Clear()
 {
     bookingNumber = "";
-    this->setBookerPhonenumber("");
-    this->setBookerEmail("");
-    this->setBookerName("");
+    this->setBookerPhonenumber("%phoneNumber%");
+    this->setBookerEmail("%bookerEmail%");
+    this->setBookerName("%bookerName%");
     QDateTime date;
     this->setCheckedinDate(date);
     this->setCheckoutDate(date);

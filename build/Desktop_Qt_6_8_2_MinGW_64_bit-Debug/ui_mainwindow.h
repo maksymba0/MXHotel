@@ -431,10 +431,10 @@ public:
         pushButton_10->setGeometry(QRect(470, 100, 61, 31));
         pushButton_11 = new QPushButton(tab);
         pushButton_11->setObjectName("pushButton_11");
-        pushButton_11->setGeometry(QRect(470, 70, 61, 31));
+        pushButton_11->setGeometry(QRect(470, 40, 61, 31));
         pushButton_12 = new QPushButton(tab);
         pushButton_12->setObjectName("pushButton_12");
-        pushButton_12->setGeometry(QRect(470, 40, 61, 31));
+        pushButton_12->setGeometry(QRect(470, 70, 61, 31));
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName("tab_2");

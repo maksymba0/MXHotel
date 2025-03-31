@@ -59,8 +59,10 @@ public:
 
     bool IsValid()
     {
-        return RoomNumber != -1&& // valid room
-               bookingNumber != "" && // valid booking number
+        return getCheckedinDate().isValid() &&
+               getCheckoutDate().isValid() &&
+
+                RoomNumber != -1&& // valid room
                !customers.empty(); // valid customer data
     }
     bool getIsChangingRoom() const;

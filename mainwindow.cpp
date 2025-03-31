@@ -51,6 +51,16 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
 {
     ui->tabWidget->setCurrentIndex(0);
 
+    if(getBooking()->getIsChangingRoom())
+    {
+        RoomName.remove("BookingRoom_");
+        int RoomNumber = RoomName.toInt();
+        qDebug() << "Selected Room #" << RoomNumber;
+        this->getBooking()->setRoomNumber(RoomNumber);
+        getBooking()->setIsChangingRoom(false);
+        LoadBooking();
+        return;
+    }
 
     // Requesting data
 
@@ -261,6 +271,8 @@ void MainWindow::OnSavedChanges()
         {
         case QMessageBox::Yes:
             QMessageBox::information(this,"Save change - success","Booking has been created.");
+            this->getBooking()->setBookingNumber(this->RandomBookingNumber());
+            LoadBooking();
             break;
         case QMessageBox::No:
         default:
@@ -531,8 +543,23 @@ void MainWindow::OnCheckOutDateChanged()
     if (dialog.exec() == QDialog::Accepted) {
         QDate selectedDate = dialog.getSelectedDate();
         QDateTime dateTime = QDateTime::fromString(selectedDate.toString("yyyy-MM-dd"), "yyyy-MM-dd");
+        if(dateTime < getBooking()->getCreatedDate())
+        {
+            QMessageBox::warning(this,"Change Check-out date","Cannot choose check-out date in the past");
+            return;
+        }
+        if(getBooking()->getCheckedinDate().isValid())
+        {
+            if(dateTime < getBooking()->getCheckedinDate())
+            {
+
+                QMessageBox::warning(this,"Change Check-out date","Wrong check-out date. It cannot be before checking in.");
+                return;
+            }
+        }
         qDebug() << "Selected date: " << selectedDate.toString("dd.MM.yyyy");
         getBooking()->setCheckoutDate(dateTime);
+        LoadBooking();
     }
 }
 
@@ -542,8 +569,14 @@ void MainWindow::OnCheckInDateChanged()
     if (dialog.exec() == QDialog::Accepted) {
         QDate selectedDate = dialog.getSelectedDate();
         QDateTime dateTime = QDateTime::fromString(selectedDate.toString("yyyy-MM-dd"), "yyyy-MM-dd");
+        if(dateTime < getBooking()->getCreatedDate())
+        {
+            QMessageBox::warning(this,"Change Check-in date","Cannot choose check-in date in the past");
+            return;
+        }
         qDebug() << "Selected date: " << selectedDate.toString("dd.MM.yyyy");
         getBooking()->setCheckedinDate(dateTime);
+        LoadBooking();
     }
 }
 
