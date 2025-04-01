@@ -272,6 +272,7 @@ void MainWindow::OnSavedChanges()
         case QMessageBox::Yes:
             QMessageBox::information(this,"Save change - success","Booking has been created.");
             this->getBooking()->setBookingNumber(this->RandomBookingNumber());
+            this->getBooking()->setIsBeingCreated(false);
             LoadBooking();
             break;
         case QMessageBox::No:
@@ -291,6 +292,7 @@ void MainWindow::OnSavedChanges()
             {
             case QMessageBox::Yes:
                 QMessageBox::information(this,"Save change - success","Booking has been updated.");
+                getBooking()->setIsModified(false);
                 break;
             case QMessageBox::No:
             default:
@@ -568,15 +570,17 @@ void MainWindow::OnCheckInDateChanged()
     CalendarDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         QDate selectedDate = dialog.getSelectedDate();
-        QDateTime dateTime = QDateTime::fromString(selectedDate.toString("yyyy-MM-dd"), "yyyy-MM-dd");
-        if(dateTime < getBooking()->getCreatedDate())
-        {
-            QMessageBox::warning(this,"Change Check-in date","Cannot choose check-in date in the past");
-            return;
+        QDateTime dateTime(selectedDate,QTime(0,0,0)); // Properly converts QDate to QDateTime
+
+        qDebug() << "Selected date: " << dateTime.toString("dd.MM.yyyy hh:mm:ss");
+        qDebug() << "Created date: " << getBooking()->getCreatedDate().toString("dd.MM.yyyy hh:mm:ss");
+
+        if(dateTime >= getBooking()->getCreatedDate()) {
+            getBooking()->setCheckedinDate(dateTime);
+            LoadBooking();
+        } else {
+            QMessageBox::warning(this, "Change Check-in date", "Cannot choose check-in date in the past");
         }
-        qDebug() << "Selected date: " << selectedDate.toString("dd.MM.yyyy");
-        getBooking()->setCheckedinDate(dateTime);
-        LoadBooking();
     }
 }
 

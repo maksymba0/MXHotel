@@ -175,9 +175,11 @@ void Booking::Clear()
     this->setBookerEmail("%bookerEmail%");
     this->setBookerName("%bookerName%");
     QDateTime date;
+    auto currentDate = QDateTime::currentDateTime();
+    currentDate.setTime(QTime(0,0,0));
     this->setCheckedinDate(date);
     this->setCheckoutDate(date);
-    this->setCreatedDate(QDateTime::currentDateTime());
+    this->setCreatedDate(currentDate);
     this->setRoomNumber(-1);
     this->setNotes("");
     this->getCustomers().erase(getCustomers().begin(),getCustomers().end());
