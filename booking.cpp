@@ -2,6 +2,7 @@
 #include "payment.h"
 #include <QRegularExpression>
 #include <QDateTime>
+#include <QInputDialog>
 Booking::Booking()
 {
     Clear();
@@ -242,6 +243,24 @@ bool Booking::getIsChangingRoom() const
 void Booking::setIsChangingRoom(bool newIsChangingRoom)
 {
     IsChangingRoom = newIsChangingRoom;
+}
+
+void Booking::RequestBookerInfo()
+{
+    QString bookerName = QInputDialog::getText(nullptr," Booker - data"," Name of the customer who requests to make the booking\n Hit ENTER to leave as empty!");
+    QString bookerPhone = QInputDialog::getText(nullptr," Booker - data"," Phone number of the customer who requests to make the booking\n Hit ENTER to leave as empty!");
+    QString bookerEmail = QInputDialog::getText(nullptr," Booker - data"," Email of the customer who requests to make the booking\n Hit ENTER to leave as empty!");
+
+    if(bookerName == "")
+    {
+        setBookerName("");
+    }else
+    {
+        setBookerName(bookerName);
+    }
+    setBookerPhonenumber(bookerPhone);
+    setBookerEmail(bookerEmail);
+    qDebug() << bookerName << " " << bookerPhone << " " << bookerEmail;
 }
 
 Booking::Booking(const QDateTime &CreatedDate, const QDateTime &CheckedinDate, const QDateTime &CheckoutDate, int RoomNumber, const QString &bookerName, const QString &bookerEmail, const QString &bookerPhonenumber, const QVector<Customer> &customers) : CreatedDate(CreatedDate),

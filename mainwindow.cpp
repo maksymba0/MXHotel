@@ -530,6 +530,7 @@ void MainWindow::OnNewBooking()
     getBooking()->Clear();
     getBooking()->Print();
     getBooking()->setIsBeingCreated(true);
+    getBooking()->RequestBookerInfo();
     LoadBooking();
 }
 
@@ -709,6 +710,7 @@ void MainWindow::SetBookingPage()
     connect(ui->pushButton_8,&QPushButton::clicked,this,&MainWindow::OnPaymentAdded);
     connect(ui->pushButton_9,&QPushButton::clicked,this,&MainWindow::OnPaymentRemoved);
 
+    // label booker data
 }
 
 void MainWindow::LoadBooking()

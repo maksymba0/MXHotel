@@ -68,6 +68,8 @@ public:
     bool getIsChangingRoom() const;
     void setIsChangingRoom(bool newIsChangingRoom);
 
+    void RequestBookerInfo();
+
 protected:
     QDateTime CreatedDate;
     QDateTime CheckedinDate;
