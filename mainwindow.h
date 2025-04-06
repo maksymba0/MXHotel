@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include <thememanager.h>
 #include "booking.h"
+#include "employee.h"
 #include "payment.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -28,8 +29,16 @@ public:
 
     //Hotel Map Page
     void SetHotelMapPage();
+
     //Employees Page
     void SetEmployeesPage();
+    void LoadEmployees();
+    int GetNewEmployeeID();
+    Employee* GetEmployeeByName(QString Name);
+
+    bool EmployeeModified = false;
+
+
     //Customers Page
     void SetCustomersPage();
     //Partners Page
@@ -48,6 +57,12 @@ public:
     void setBooking(const Booking &newBooking);
 
 private slots:
+
+    void OnEmployeeCreated();
+    void OnEmployeeUpdated();
+    void OnEmployeeRemoved();
+
+
     void UpdateTheme(int Index);
     void OnRoomInfoRequested(QString RoomName);
     void OnTableItemEditable(QTableWidgetItem* item);
@@ -69,6 +84,8 @@ private slots:
 
 private:
     Booking booking;
+    QList<Employee> employees;
+
     Ui::MainWindow *ui;
 
 };

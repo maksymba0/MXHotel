@@ -72,6 +72,16 @@ void Employee::setPassword(const QString &newPassword)
     password = newPassword;
 }
 
+bool Employee::getIsModified() const
+{
+    return IsModified;
+}
+
+void Employee::setIsModified(bool newIsModified)
+{
+    IsModified = newIsModified;
+}
+
 
 Employee::Employee(const QString &name, const QString &role) : name(name),
     role(role),

@@ -6,6 +6,13 @@ class Employee
 {
 public:
     Employee();
+
+    bool operator==(const Employee& other) const
+    {
+        return other.email == email && other.login == login
+        && other.name == name && other.password == password
+               && other.phoneNumber == phoneNumber && other.role == role && other.salary == salary;
+    }
     Employee(const QString &name, const QString &role);
     QString getName() const;
     void setName(const QString &newName);
@@ -29,6 +36,10 @@ public:
     void setPassword(const QString &newPassword);
 
     void Print() const {
+        if(getIsModified())
+        {
+            qDebug() << "*** MODIFIED ***";
+        }
         qDebug() << "Name: " << name;
         qDebug() << "Role: " << role;
         qDebug() << "Email: " << email;
@@ -37,14 +48,18 @@ public:
         qDebug() << "Login: " << login;
         qDebug() << "Password: " << password;
     }
+    bool getIsModified() const;
+    void setIsModified(bool newIsModified);
+
 private:
-    QString name;
-    QString role;
-    QString email;
-    QString phoneNumber;
-    float salary;
-    QString login;
-    QString password;
+    QString name = "";
+    QString role = "";
+    QString email = "";
+    QString phoneNumber = "";
+    float salary = 0.0;
+    QString login = "";
+    QString password = "";
+    bool IsModified = false;
 };
 
 #endif // EMPLOYEE_H

@@ -38,8 +38,11 @@ struct qt_meta_tag_ZN10MainWindowE_t {};
 #ifdef QT_MOC_HAS_STRINGDATA
 static constexpr auto qt_meta_stringdata_ZN10MainWindowE = QtMocHelpers::stringData(
     "MainWindow",
-    "UpdateTheme",
+    "OnEmployeeCreated",
     "",
+    "OnEmployeeUpdated",
+    "OnEmployeeRemoved",
+    "UpdateTheme",
     "Index",
     "OnRoomInfoRequested",
     "RoomName",
@@ -70,7 +73,7 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-      16,   14, // methods
+      19,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -78,28 +81,34 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    1,  110,    2, 0x08,    1 /* Private */,
-       4,    1,  113,    2, 0x08,    3 /* Private */,
-       6,    1,  116,    2, 0x08,    5 /* Private */,
-       9,    1,  119,    2, 0x08,    7 /* Private */,
-      10,    0,  122,    2, 0x08,    9 /* Private */,
-      11,    0,  123,    2, 0x08,   10 /* Private */,
-      12,    0,  124,    2, 0x08,   11 /* Private */,
-      13,    0,  125,    2, 0x08,   12 /* Private */,
-      14,    0,  126,    2, 0x08,   13 /* Private */,
-      15,    0,  127,    2, 0x08,   14 /* Private */,
-      16,    0,  128,    2, 0x08,   15 /* Private */,
-      17,    0,  129,    2, 0x08,   16 /* Private */,
-      18,    0,  130,    2, 0x08,   17 /* Private */,
-      19,    0,  131,    2, 0x08,   18 /* Private */,
-      20,    0,  132,    2, 0x08,   19 /* Private */,
-      21,    0,  133,    2, 0x08,   20 /* Private */,
+       1,    0,  128,    2, 0x08,    1 /* Private */,
+       3,    0,  129,    2, 0x08,    2 /* Private */,
+       4,    0,  130,    2, 0x08,    3 /* Private */,
+       5,    1,  131,    2, 0x08,    4 /* Private */,
+       7,    1,  134,    2, 0x08,    6 /* Private */,
+       9,    1,  137,    2, 0x08,    8 /* Private */,
+      12,    1,  140,    2, 0x08,   10 /* Private */,
+      13,    0,  143,    2, 0x08,   12 /* Private */,
+      14,    0,  144,    2, 0x08,   13 /* Private */,
+      15,    0,  145,    2, 0x08,   14 /* Private */,
+      16,    0,  146,    2, 0x08,   15 /* Private */,
+      17,    0,  147,    2, 0x08,   16 /* Private */,
+      18,    0,  148,    2, 0x08,   17 /* Private */,
+      19,    0,  149,    2, 0x08,   18 /* Private */,
+      20,    0,  150,    2, 0x08,   19 /* Private */,
+      21,    0,  151,    2, 0x08,   20 /* Private */,
+      22,    0,  152,    2, 0x08,   21 /* Private */,
+      23,    0,  153,    2, 0x08,   22 /* Private */,
+      24,    0,  154,    2, 0x08,   23 /* Private */,
 
  // slots: parameters
-    QMetaType::Void, QMetaType::Int,    3,
-    QMetaType::Void, QMetaType::QString,    5,
-    QMetaType::Void, 0x80000000 | 7,    8,
-    QMetaType::Void, 0x80000000 | 7,    8,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, QMetaType::Int,    6,
+    QMetaType::Void, QMetaType::QString,    8,
+    QMetaType::Void, 0x80000000 | 10,   11,
+    QMetaType::Void, 0x80000000 | 10,   11,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -125,6 +134,12 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
     qt_incomplete_metaTypeArray<qt_meta_tag_ZN10MainWindowE_t,
         // Q_OBJECT / Q_GADGET
         QtPrivate::TypeAndForceComplete<MainWindow, std::true_type>,
+        // method 'OnEmployeeCreated'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'OnEmployeeUpdated'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'OnEmployeeRemoved'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'UpdateTheme'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<int, std::false_type>,
@@ -170,22 +185,25 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     auto *_t = static_cast<MainWindow *>(_o);
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: _t->UpdateTheme((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
-        case 1: _t->OnRoomInfoRequested((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 2: _t->OnTableItemEditable((*reinterpret_cast< std::add_pointer_t<QTableWidgetItem*>>(_a[1]))); break;
-        case 3: _t->OnTableItemChanged((*reinterpret_cast< std::add_pointer_t<QTableWidgetItem*>>(_a[1]))); break;
-        case 4: _t->OnCustomerBanned(); break;
-        case 5: _t->OnCustomerCreated(); break;
-        case 6: _t->OnCustomerRemoved(); break;
-        case 7: _t->OnCustomerCheckedOut(); break;
-        case 8: _t->OnCustomerCheckedIn(); break;
-        case 9: _t->OnSavedChanges(); break;
-        case 10: _t->OnNewBooking(); break;
-        case 11: _t->OnChangingRoom(); break;
-        case 12: _t->OnCheckOutDateChanged(); break;
-        case 13: _t->OnCheckInDateChanged(); break;
-        case 14: _t->OnPaymentAdded(); break;
-        case 15: _t->OnPaymentRemoved(); break;
+        case 0: _t->OnEmployeeCreated(); break;
+        case 1: _t->OnEmployeeUpdated(); break;
+        case 2: _t->OnEmployeeRemoved(); break;
+        case 3: _t->UpdateTheme((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 4: _t->OnRoomInfoRequested((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 5: _t->OnTableItemEditable((*reinterpret_cast< std::add_pointer_t<QTableWidgetItem*>>(_a[1]))); break;
+        case 6: _t->OnTableItemChanged((*reinterpret_cast< std::add_pointer_t<QTableWidgetItem*>>(_a[1]))); break;
+        case 7: _t->OnCustomerBanned(); break;
+        case 8: _t->OnCustomerCreated(); break;
+        case 9: _t->OnCustomerRemoved(); break;
+        case 10: _t->OnCustomerCheckedOut(); break;
+        case 11: _t->OnCustomerCheckedIn(); break;
+        case 12: _t->OnSavedChanges(); break;
+        case 13: _t->OnNewBooking(); break;
+        case 14: _t->OnChangingRoom(); break;
+        case 15: _t->OnCheckOutDateChanged(); break;
+        case 16: _t->OnCheckInDateChanged(); break;
+        case 17: _t->OnPaymentAdded(); break;
+        case 18: _t->OnPaymentRemoved(); break;
         default: ;
         }
     }
@@ -210,14 +228,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 16)
+        if (_id < 19)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 16;
+        _id -= 19;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 16)
+        if (_id < 19)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 16;
+        _id -= 19;
     }
     return _id;
 }

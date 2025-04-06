@@ -7,6 +7,7 @@
 #include <QRandomGenerator>
 #include <QMessageBox>
 #include "calendardialog.h"
+#include <QInputDialog>
 #include "employee.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -133,7 +134,9 @@ void MainWindow::OnTableItemEditable(QTableWidgetItem *item)
         return;
     }
     QTableWidget* TableWidget = nullptr;
-    if(ui->tableWidget == item->tableWidget() || (ui->tableWidget_2 == item->tableWidget()))
+    if(ui->tableWidget == item->tableWidget() || // customers
+        (ui->tableWidget_2 == item->tableWidget()) || // payment
+        (ui->tableWidget_3 == item->tableWidget())) // employees
     {
         TableWidget = item->tableWidget();
     }
@@ -151,7 +154,13 @@ void MainWindow::OnTableItemEditable(QTableWidgetItem *item)
         {
             auto item = TableWidget->item(row,i);
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-            item->setForeground(Qt::black);
+            if(Themes.IsStandard())
+            {
+                item->setForeground(Qt::black);
+            }else
+            {
+                item->setForeground(Qt::white);
+            }
         }
     }else
     {
@@ -250,6 +259,52 @@ void MainWindow::OnTableItemChanged(QTableWidgetItem* item)
             }
             getBooking()->setIsModified(true);
         }
+    }else if(item->tableWidget() == ui->tableWidget_3) // EMPLOYEE TABLE
+    {
+        auto EmployeeTable = ui->tableWidget_3;
+        if(employees.empty() || row > employees.size())
+        {
+            qDebug() << "Outside of index boundary";
+            return;
+        }
+        Employee* employee = &employees[row];
+        if(employee)
+        {
+            switch(item->column())
+            {
+            case 0:
+                employee->setName(EmployeeTable->item(row,0)->text());
+                break; // name
+            case 1:
+
+                employee->setRole(EmployeeTable->item(row,1)->text());
+                break; // role
+            case 2:
+
+                employee->setEmail(EmployeeTable->item(row,2)->text());
+                break; // email
+            case 3:
+
+                employee->setPhoneNumber(EmployeeTable->item(row,3)->text());
+                break; // phone number
+            case 4:
+
+                employee->setSalary(EmployeeTable->item(row,4)->text().toFloat());
+                break; //salary
+            case 5:
+
+                employee->setLogin(EmployeeTable->item(row,5)->text());
+                break;// login
+            case 6:
+                employee->setPassword(EmployeeTable->item(row,6)->text());
+                break; // password
+            }
+            EmployeeModified = true;
+            employee->setIsModified(true);
+            employee->Print();
+
+        }
+
     }
 
 
@@ -622,7 +677,7 @@ void MainWindow::OnPaymentRemoved()
         return;
     }
     auto paymentTable = ui->tableWidget_2;
-    int columnNum = paymentTable->columnCount();
+    //int columnNum = paymentTable->columnCount();
     QSet<int> Rows;
     QList<QTableWidgetItem*> selectedItems = paymentTable->selectedItems();
     if(selectedItems.empty())
@@ -671,6 +726,237 @@ void MainWindow::setBooking(const Booking &newBooking)
 {
     booking = newBooking;
 }
+
+void MainWindow::OnEmployeeCreated()
+{
+    qDebug() << "OnEmployeeCreated";
+    auto EmployeeTable = ui->tableWidget_3;
+    int count = EmployeeTable->rowCount();
+
+
+    Employee employee;
+
+    auto InputValue = QInputDialog::getText(this,"Create Employee","Name of the new employee");
+
+    if(InputValue == "")
+    {
+        QMessageBox::warning(this, "Invalid Name", "Empty name was provided. Try again");
+        return;
+    }
+
+    QRegularExpression regex("^[A-Za-z ]+$");
+
+    if (!regex.match(InputValue).hasMatch()) {
+        QMessageBox::warning(this, "Invalid Name", "Name must contain only letters (A-Z, a-z)");
+        return;
+    }
+
+    employee.setName(InputValue);
+
+    auto employeeEmail = InputValue.trimmed().replace(" ",".").toLower() + "@mxhotel.com";
+    InputValue = QInputDialog::getText(this,"Create Employee","Email of the new employee");
+    if(InputValue == "" || InputValue == " " || InputValue.contains(" ") || !InputValue.contains("@"))
+    {
+        employee.setEmail(employeeEmail);
+    }else
+    {
+
+        employee.setEmail(InputValue);
+    }
+
+
+    employee.setLogin(InputValue);
+    InputValue.clear();
+
+    int ID = GetNewEmployeeID();
+    InputValue = "mx_"+QString::number(ID);
+    employee.setLogin(InputValue);
+    InputValue.clear();
+
+    InputValue = QInputDialog::getText(this,"Create Employee","Password of the new employee");
+    if(InputValue == "" || InputValue == " ")
+    {
+        QMessageBox::warning(this, "Invalid password", "Invalid password. It will be randomized");
+        const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+        QString randomPassword;
+        for (int i = 0; i < 10; ++i) {
+            int index = rand() % possibleCharacters.length();
+            randomPassword.append(possibleCharacters[index]);
+        }
+        InputValue = randomPassword;
+    }
+    employee.setPassword(InputValue);
+    InputValue.clear();
+
+    InputValue = QInputDialog::getText(this,"Create Employee","Phone number of the new employee");
+    regex = QRegularExpression("^\\+?[\\d\\s-]+$");
+    if(!regex.match(InputValue).hasMatch())
+    {
+        InputValue = "0";
+    }
+    employee.setPhoneNumber(InputValue);
+    InputValue.clear();
+
+    InputValue = QInputDialog::getText(this,"Create Employee","Role of the new employee");
+    regex = QRegularExpression("^[A-Za-z]+$");
+    if(!regex.match(InputValue).hasMatch())
+    {
+
+        InputValue = "None";
+    }
+    employee.setRole(InputValue);
+    InputValue.clear();
+
+    InputValue = QInputDialog::getText(this,"Create Employee","Salary of the new employee");
+    regex = QRegularExpression("^[0-9.,]+$");
+    if(!regex.match(InputValue).hasMatch())
+    {
+        InputValue = "0.0";
+    }
+    employee.setSalary(InputValue.remove(',').toFloat());
+    InputValue.clear();
+
+
+    if(employees.contains(employee))
+    {
+        QMessageBox::warning(this,"Create Employee","Such employee already exists");
+        return;
+    }
+    employees.push_back(employee);
+
+    EmployeeTable->insertRow(count);
+    qDebug() << "rows: "<<EmployeeTable->rowCount() << " columns: " << EmployeeTable->columnCount();
+    int columnNum = EmployeeTable->columnCount();
+    EmployeeTable->blockSignals(true);
+    for(int i = 0 ; i < columnNum; ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem("Text");
+
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+       EmployeeTable->setItem(EmployeeTable->rowCount()-1,i,item);
+        auto Widget = EmployeeTable->item(EmployeeTable->rowCount()-1,i);
+        if(Widget)
+        {
+            Widget->setBackground(QColor(0x545454));
+        }
+        else
+        {
+            qDebug() << "Reading nullptr;";
+        }
+    }
+    EmployeeTable->blockSignals(false);
+    QMessageBox::information(this,"Employee Created","Congratulations. Created an employee.");
+    LoadEmployees();
+    qDebug() << "Loaded employees";
+   // EmployeeTable->resizeColumnsToContents();
+}
+void MainWindow::OnEmployeeUpdated()
+{
+    if(EmployeeModified)
+    {
+        auto reply = QMessageBox::question(this,"Save changes - EMPLOYEE","Are you sure you want to save the changes? Please check once again before saving the changes!!!");
+        if(reply == QMessageBox::No)
+        {
+            return;
+        }else
+        {
+            EmployeeModified = false;
+            QMessageBox::information(this,"Save changes - EMPLOYEE","Saved changes.");
+        }
+    }
+    else
+    {
+        QMessageBox::warning(this,"Save changes - EMPLOYEE", "You are trying to save empty changes. Request denied.");
+    }
+};
+void MainWindow::OnEmployeeRemoved()
+{
+    QSet<int> rows;
+
+    // Change information on booking
+
+    auto EmployeeTable = ui->tableWidget_3;
+
+    QList<QTableWidgetItem*> selectedItems = EmployeeTable->selectedItems();
+
+    if(selectedItems.empty())
+    {
+        auto RowMax = EmployeeTable->rowCount();
+        if(RowMax <= 0)
+        {
+            return;
+        }
+        auto NameWidget = EmployeeTable->item(RowMax-1,0);
+        if(!NameWidget)
+        {
+            return;
+        }
+        auto Name = (NameWidget->text() != "" ? NameWidget->text() : "Empty cell");
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this,"Remove employee",""
+                                                               "NO SPECIFIC EMPLOYEE SELECTED. Are you sure you want to remove the last employee from list ( "+Name+ " ) from the system?",
+                                      QMessageBox::Yes | QMessageBox::No);
+        if(reply == QMessageBox::Yes)
+        {
+            auto employee = GetEmployeeByName(Name);
+            if(employee)
+            {
+                bool IsSuccess  = false;
+
+                // for each selected row
+                employees.removeOne(*employee);
+                if(IsSuccess)
+                    QMessageBox::information(this,"REMOVE SUCCESS",employee->getName() + " has been removed!");
+                EmployeeModified = true;
+                EmployeeTable->removeRow(RowMax-1);
+            }else
+            {
+                QMessageBox::warning(this,"Remove Customer","Error while removing the last employee from the employee table");
+            }
+        }
+        return;
+    }
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+
+    for(auto& Row : rows)
+    {
+        auto NameWidget = EmployeeTable->item(Row,0);
+        if(!NameWidget)
+        {
+            continue;
+        }
+        auto employee = GetEmployeeByName(NameWidget->text());
+        bool IsSuccess = false;
+        QString name = employee->getName();
+        if(!employee)
+        {
+            continue;
+        }
+        auto reply = QMessageBox::question(this,"Remove employee","You are trying to remove " + name + " . Are you sure?");
+        if(reply != QMessageBox::Yes)
+        {
+            continue;
+        }
+        IsSuccess  = true;
+        // for each selected row
+        EmployeeTable->removeRow(Row);
+        employees.removeOne(*employee);
+        if(IsSuccess)
+        {
+
+            QMessageBox::information(this,"REMOVE SUCCESS",name + " has been removed!");
+            EmployeeModified = true;
+        }
+    }
+    if(EmployeeTable->rowCount() == 0)
+    {
+        EmployeeModified = false;
+    }
+};
 /////////////////////////////////////////
 /////////////////////////////////////////
 /////////////////////////////////////////
@@ -849,7 +1135,102 @@ void MainWindow::SetEmployeesPage(){
     Employee employee("Maksy Creator","admin");
     employee.Print();
 
+    connect(ui->pushButton_27,&QPushButton::clicked,this,&MainWindow::OnEmployeeCreated);
+        //Create
+    connect(ui->pushButton_29,&QPushButton::clicked,this,&MainWindow::OnEmployeeUpdated);
+        //Update
+    connect(ui->pushButton_28,&QPushButton::clicked,this,&MainWindow::OnEmployeeRemoved);
 
+    connect(ui->tableWidget_3,&QTableWidget::itemDoubleClicked,this,&MainWindow::OnTableItemEditable);
+
+    connect(ui->tableWidget_3,&QTableWidget::itemChanged,this,&MainWindow::OnTableItemChanged);
+
+    ui->tableWidget_3->setColumnWidth(0,130);
+    ui->tableWidget_3->setColumnWidth(1,100);
+    ui->tableWidget_3->setColumnWidth(2,200);
+    ui->tableWidget_3->setColumnWidth(3,180);
+    ui->tableWidget_3->setColumnWidth(4,80);
+    ui->tableWidget_3->setColumnWidth(5,140);
+    ui->tableWidget_3->setColumnWidth(6,230);
+
+
+
+
+
+
+    //Remove
+
+}
+
+void MainWindow::LoadEmployees()
+{
+    if(employees.empty())
+    {
+        QMessageBox::warning(this,"LoadEmployees","Failed to load empty employees");
+    }
+    auto EmployeeTable = ui->tableWidget_3;
+    if(EmployeeTable->rowCount() < employees.size())
+    {
+        qDebug() << "Employee table must have enough rows: "<<EmployeeTable->rowCount() << " " << employees.size();
+    }
+    int i = 0;
+    qDebug() << "Populating table with values";
+    EmployeeTable->blockSignals(true);
+    for(auto& employee : employees)
+    {
+        employee.Print();
+        auto cellItem = EmployeeTable->item(i,0);
+        if(!cellItem)
+        {
+            qDebug() << "Invalid item at row "<<i<< " column: " << 0;
+            continue;
+        }
+
+        cellItem->setText(employee.getName());
+
+        cellItem = EmployeeTable->item(i,1);
+        cellItem->setText(employee.getRole());
+
+        cellItem = EmployeeTable->item(i,2);
+        cellItem->setText(employee.getEmail());
+
+        cellItem = EmployeeTable->item(i,3);
+        cellItem->setText(employee.getPhoneNumber());
+
+        cellItem = EmployeeTable->item(i,4);
+        cellItem->setText(QString::number(employee.getSalary()));
+
+        cellItem = EmployeeTable->item(i,5);
+        cellItem->setText(employee.getLogin());
+
+        cellItem = EmployeeTable->item(i,6);
+        cellItem->setText(employee.getPassword());
+
+        ++i;
+    }
+    EmployeeTable->blockSignals(false);
+}
+
+int MainWindow::GetNewEmployeeID()
+{
+    // Make request to the database to check the employees count
+    return QRandomGenerator::global()->bounded(0,100);
+}
+
+Employee *MainWindow::GetEmployeeByName(QString Name)
+{
+    if(employees.empty())
+    {
+        return nullptr;
+    }
+    for(auto& employee : employees)
+    {
+        if(employee.getName() == Name)
+        {
+            return &employee;
+        }
+    }
+    return nullptr;
 }
 void MainWindow::SetCustomersPage(){
 
