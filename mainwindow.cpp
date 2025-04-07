@@ -956,6 +956,89 @@ void MainWindow::OnEmployeeRemoved()
     {
         EmployeeModified = false;
     }
+}
+
+void MainWindow::OnSearchEmployee()
+{
+    QRegularExpression regex("^[A-Za-z]+$");
+    QString dataQuery;
+    if(!regex.match(ui->lineEdit_6->text()).hasMatch())// first name
+    {
+        QMessageBox::warning(this,"Search Employee","Invalid name");
+    }
+
+    if(!regex.match(ui->lineEdit_7->text()).hasMatch())// surname
+    {
+        QMessageBox::warning(this,"Search Employee","Invalid surname");
+    }
+
+    regex = QRegularExpression("^[0-9 ]+$");
+    if(!regex.match(ui->lineEdit_8->text()).hasMatch())// first name
+    {
+        QMessageBox::warning(this,"Search Employee","Invalid phone number");
+    }
+    dataQuery = ui->lineEdit_6->text() + " " + ui->lineEdit_7->text() + " " + ui->lineEdit_8->text();
+    auto employeeName = ui->lineEdit_6->text() + " " + ui->lineEdit_7->text();
+    qDebug() << "Sent data:  " << dataQuery;
+
+    Employee employee;
+    if(ui->lineEdit_6->text() != "")
+    {
+        auto employeePtr = GetEmployeeByName(employeeName);
+        if(employeePtr)
+        {
+            qDebug() << "GetEmployeeByName found";
+            employeePtr->Print();
+            employee = *employeePtr;
+        }
+    }else
+    {
+        bool foundEmployee = false;
+        for (auto& object : employees)
+        {
+            if(object.getName() == employeeName)
+            {
+                object.Print();
+                employee = object;
+                foundEmployee = true;
+                break;
+            }
+        }
+        if(!foundEmployee)
+        {
+            QMessageBox::warning(this,"Search Employee", "Could not find "+employeeName);
+            return;
+        }
+    }
+    qDebug() << "=====================";
+
+    qDebug() << "=====================";
+    employees.clear();
+    ui->tableWidget_3->clear();
+    ui->tableWidget_3->setRowCount(0);
+    ui->tableWidget_3->insertRow(ui->tableWidget_3->rowCount());
+
+    ui->tableWidget_3->blockSignals(true);
+    for(int i = 0 ; i < ui->tableWidget_3->columnCount(); ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem(" ");
+
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->tableWidget_3->setItem(ui->tableWidget_3->rowCount()-1,i,item);
+        auto Widget = ui->tableWidget_3->item(ui->tableWidget_3->rowCount()-1,i);
+        if(Widget)
+        {
+            Widget->setBackground(QColor(0x545454));
+        }
+        else
+        {
+            qDebug() << "Reading nullptr;";
+        }
+    }
+    ui->tableWidget_3->blockSignals(false);
+    employees.push_back(employee);
+    LoadEmployees();
+
 };
 /////////////////////////////////////////
 /////////////////////////////////////////
@@ -1153,7 +1236,7 @@ void MainWindow::SetEmployeesPage(){
     ui->tableWidget_3->setColumnWidth(5,140);
     ui->tableWidget_3->setColumnWidth(6,230);
 
-
+    connect(ui->pushButton_33,&QPushButton::clicked,this,&MainWindow::OnSearchEmployee);
 
 
 
@@ -1164,11 +1247,12 @@ void MainWindow::SetEmployeesPage(){
 
 void MainWindow::LoadEmployees()
 {
+    auto EmployeeTable = ui->tableWidget_3;
+
     if(employees.empty())
     {
         QMessageBox::warning(this,"LoadEmployees","Failed to load empty employees");
     }
-    auto EmployeeTable = ui->tableWidget_3;
     if(EmployeeTable->rowCount() < employees.size())
     {
         qDebug() << "Employee table must have enough rows: "<<EmployeeTable->rowCount() << " " << employees.size();
@@ -1184,6 +1268,9 @@ void MainWindow::LoadEmployees()
         {
             qDebug() << "Invalid item at row "<<i<< " column: " << 0;
             continue;
+        }else
+        {
+
         }
 
         cellItem->setText(employee.getName());

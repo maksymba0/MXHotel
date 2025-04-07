@@ -36,6 +36,7 @@ public:
     int GetNewEmployeeID();
     Employee* GetEmployeeByName(QString Name);
 
+
     bool EmployeeModified = false;
 
 
@@ -61,6 +62,8 @@ private slots:
     void OnEmployeeCreated();
     void OnEmployeeUpdated();
     void OnEmployeeRemoved();
+
+    void OnSearchEmployee();
 
 
     void UpdateTheme(int Index);

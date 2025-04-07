@@ -13,6 +13,19 @@ public:
         && other.name == name && other.password == password
                && other.phoneNumber == phoneNumber && other.role == role && other.salary == salary;
     }
+    Employee& operator=(const Employee& other) {
+        if (this != &other) {
+            name = other.name;
+            role = other.role;
+            email = other.email;
+            phoneNumber = other.phoneNumber;
+            salary = other.salary;
+            login = other.login;
+            password = other.password;
+            IsModified = other.IsModified;
+        }
+        return *this;
+    }
     Employee(const QString &name, const QString &role);
     QString getName() const;
     void setName(const QString &newName);
