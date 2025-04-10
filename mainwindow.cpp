@@ -962,27 +962,48 @@ void MainWindow::OnSearchEmployee()
 {
     QRegularExpression regex("^[A-Za-z]+$");
     QString dataQuery;
+    bool ValidName = true;
+    bool ValidSurname = true;
+    bool ValidPhone = true;
     if(!regex.match(ui->lineEdit_6->text()).hasMatch())// first name
     {
-        QMessageBox::warning(this,"Search Employee","Invalid name");
+        ValidName = false;
     }
 
     if(!regex.match(ui->lineEdit_7->text()).hasMatch())// surname
     {
-        QMessageBox::warning(this,"Search Employee","Invalid surname");
+        //QMessageBox::warning(this,"Search Employee","Invalid surname");
+        ValidSurname = false;
     }
 
     regex = QRegularExpression("^[0-9 ]+$");
     if(!regex.match(ui->lineEdit_8->text()).hasMatch())// first name
     {
-        QMessageBox::warning(this,"Search Employee","Invalid phone number");
+        ValidPhone = false;
+       // QMessageBox::warning(this,"Search Employee","Invalid phone number");
     }
-    dataQuery = ui->lineEdit_6->text() + " " + ui->lineEdit_7->text() + " " + ui->lineEdit_8->text();
-    auto employeeName = ui->lineEdit_6->text() + " " + ui->lineEdit_7->text();
+
+    QString employeeName = "";
+    if(ValidName && ValidSurname)
+    {
+        employeeName =  ui->lineEdit_6->text() + " " + ui->lineEdit_7->text();
+        //QMessageBox::warning(this,"Search Employee","Invalid name and surname");
+    }else
+    {
+        if(ValidName)
+        {
+            employeeName = ui->lineEdit_6->text();
+        }else if(ValidSurname)
+        {
+            employeeName = ui->lineEdit_7->text();
+        }
+    }
+    dataQuery = employeeName + " " + ui->lineEdit_8->text();
     qDebug() << "Sent data:  " << dataQuery;
 
+    bool foundEmployee = false;
     Employee employee;
-    if(ui->lineEdit_6->text() != "")
+    if(employeeName != "") // name
     {
         auto employeePtr = GetEmployeeByName(employeeName);
         if(employeePtr)
@@ -990,31 +1011,39 @@ void MainWindow::OnSearchEmployee()
             qDebug() << "GetEmployeeByName found";
             employeePtr->Print();
             employee = *employeePtr;
+            foundEmployee = true;
+        }else
+        {
+
         }
     }else
     {
-        bool foundEmployee = false;
-        for (auto& object : employees)
+        if(ui->lineEdit_8->text() != "") // phone number
         {
-            if(object.getName() == employeeName)
+
+            for (auto& object : employees)
             {
-                object.Print();
-                employee = object;
-                foundEmployee = true;
-                break;
+                if(object.getPhoneNumber() == employeeName)
+                {
+                    object.Print();
+                    employee = object;
+                    foundEmployee = true;
+                    break;
+                }
             }
         }
-        if(!foundEmployee)
-        {
-            QMessageBox::warning(this,"Search Employee", "Could not find "+employeeName);
-            return;
-        }
+    }
+
+    if(!foundEmployee)
+    {
+        QMessageBox::warning(this,"Search Employee", "Could not find "+employeeName);
+        return;
     }
     qDebug() << "=====================";
 
     qDebug() << "=====================";
     employees.clear();
-    ui->tableWidget_3->clear();
+    ui->tableWidget_3->clearContents();
     ui->tableWidget_3->setRowCount(0);
     ui->tableWidget_3->insertRow(ui->tableWidget_3->rowCount());
 
@@ -1238,6 +1267,26 @@ void MainWindow::SetEmployeesPage(){
 
     connect(ui->pushButton_33,&QPushButton::clicked,this,&MainWindow::OnSearchEmployee);
 
+    Employee max;
+    max.setName("Max Test");
+    max.setEmail("max.Test@mxhotel.com");
+    max.setLogin("adminmax");
+    max.setPassword("adminpassword");
+    max.setPhoneNumber("+48 929 858 999");
+    max.setSalary(2500);
+
+    this->AddEmployee(&max);
+    Employee daniel;
+
+    daniel.setName("Daniel Ricardo");
+    daniel.setEmail("ricardo.daniel@mxhotel.com");
+    daniel.setLogin("tairdanieldanya");
+    daniel.setPassword("testgabesoftware");
+    daniel.setPhoneNumber("+48 888 582 020");
+    daniel.setSalary(505);
+    this->AddEmployee(&daniel);
+
+
 
 
 
@@ -1304,15 +1353,95 @@ int MainWindow::GetNewEmployeeID()
     return QRandomGenerator::global()->bounded(0,100);
 }
 
+void MainWindow::AddEmployee(Employee* employee)
+{
+    qDebug() << "Creating employee internally";
+    if(!employee)
+    {
+        return;
+    }
+    auto EmployeeTable = ui->tableWidget_3;
+    int count = EmployeeTable->rowCount();
+
+
+
+
+    if(employee->getName() == "")
+    {
+        QMessageBox::warning(this, "Invalid Name", "Empty name was provided. Try again");
+        return;
+    }
+
+    QRegularExpression regex("^[A-Za-z0-9 ]+$");
+
+    if (!regex.match(employee->getName()).hasMatch()) {
+        QMessageBox::warning(this, "Invalid Name", "Name must contain only letters (A-Z, a-z)\n Name is Test Name.");
+        employee->setName("Test Name");
+    }
+
+    if(employee->getEmail() == "")
+    {
+        QString stringName = employee->getName();
+        stringName.trimmed().replace(" ",".").toLower() + "@mxhotel.com";
+    }
+
+
+    if(employee->getPassword() == "" || employee->getPassword() == " ")
+    {
+        QMessageBox::warning(this, "Invalid password", "Invalid password. It will be randomized");
+        const QString possibleCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+        QString randomPassword;
+        for (int i = 0; i < 10; ++i) {
+            int index = rand() % possibleCharacters.length();
+            randomPassword.append(possibleCharacters[index]);
+        }
+        employee->setPassword(randomPassword);
+    }
+
+    if(employees.contains(*employee))
+    {
+        QMessageBox::warning(this,"Create Employee","Such employee already exists");
+        return;
+    }
+    employees.push_back(*employee);
+
+    EmployeeTable->insertRow(count);
+    qDebug() << "rows: "<<EmployeeTable->rowCount() << " columns: " << EmployeeTable->columnCount();
+    int columnNum = EmployeeTable->columnCount();
+    EmployeeTable->blockSignals(true);
+    for(int i = 0 ; i < columnNum; ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem("Text");
+
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        EmployeeTable->setItem(EmployeeTable->rowCount()-1,i,item);
+        auto Widget = EmployeeTable->item(EmployeeTable->rowCount()-1,i);
+        if(Widget)
+        {
+            Widget->setBackground(QColor(0x545454));
+        }
+        else
+        {
+            qDebug() << "Reading nullptr;";
+        }
+    }
+    EmployeeTable->blockSignals(false);
+    QMessageBox::information(this,"Employee Created","Congratulations. Created an employee.");
+    LoadEmployees();
+    qDebug() << "Loaded employee";
+}
+
+// This will return the first employee in the system with the given name
 Employee *MainWindow::GetEmployeeByName(QString Name)
 {
-    if(employees.empty())
+    if(employees.empty() || Name.size() < 3)
     {
         return nullptr;
     }
     for(auto& employee : employees)
     {
-        if(employee.getName() == Name)
+        qDebug() << "Comparing " << employee.getName() << "   to   " << Name;
+        if(employee.getName() == Name || employee.getName().contains(Name,Qt::CaseInsensitive))
         {
             return &employee;
         }

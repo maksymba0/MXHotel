@@ -34,6 +34,7 @@ public:
     void SetEmployeesPage();
     void LoadEmployees();
     int GetNewEmployeeID();
+    void AddEmployee(Employee* employee);
     Employee* GetEmployeeByName(QString Name);
 
 
