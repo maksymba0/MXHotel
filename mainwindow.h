@@ -63,6 +63,7 @@ private slots:
     void OnEmployeeCreated();
     void OnEmployeeUpdated();
     void OnEmployeeRemoved();
+    void OnEmployeeCleared();
 
     void OnSearchEmployee();
 
@@ -77,6 +78,9 @@ private slots:
     void OnCustomerRemoved();
     void OnCustomerCheckedOut();
     void OnCustomerCheckedIn();
+    void OnCustomerInfoRequested();
+
+
     void OnSavedChanges();
     void OnNewBooking();
     void OnChangingRoom();
@@ -88,7 +92,10 @@ private slots:
 
 private:
     Booking booking;
+
     QList<Employee> employees;
+
+    QList<Customer> customers;
 
     Ui::MainWindow *ui;
 

@@ -580,6 +580,58 @@ void MainWindow::OnCustomerCheckedIn(){
     }
 }
 
+void MainWindow::OnCustomerInfoRequested()
+{
+    bool hasName = false;
+    bool hasSurname = false;
+    bool hasPhone = false;
+    bool hasEmail = false;
+    bool hasBookingNum = false;
+
+
+    QRegularExpression regex("^[A-Za-z]+$");
+    if(ui->lineEdit->text() != "" && regex.match(ui->lineEdit->text()).hasMatch()) // first name
+    {
+        hasName = true;
+    }
+    if(ui->lineEdit_2->text() != "" && regex.match(ui->lineEdit_2->text()).hasMatch()) // surname
+    {
+        hasSurname = true;
+    }
+    if(ui->lineEdit_3->text() != "" && regex.match(ui->lineEdit_3->text()).hasMatch()) // surname
+    {
+        hasPhone= true;
+    }
+    regex = QRegularExpression("^[+0-9 ]+$");
+    if(ui->lineEdit_4->text() != "" && regex.match(ui->lineEdit_4->text()).hasMatch()) // surname
+    {
+        hasEmail = true;
+    }
+    regex = QRegularExpression("^[A-Za-z]+$");
+    if(ui->lineEdit_5->text() != "" && regex.match(ui->lineEdit_5->text()).hasMatch()) // first name
+    {
+        hasBookingNum = true;
+    }
+
+    QString name = "";
+    QString phone = "";
+    QString email = "";
+    QString bookingNum = "";
+    if(hasName)
+    {
+        name = ui->lineEdit->text() + " ";
+    }
+    if(hasSurname)
+    {
+        name += ui->lineEdit_2->text();
+    }
+
+    QString Query = "Name:"+name+" Phone:"+phone+" Email:"+email+" booking:"+bookingNum;
+
+    qDebug() << " Sending request" << Query;
+
+}
+
 void MainWindow::OnNewBooking()
 {
     getBooking()->Clear();
@@ -958,6 +1010,19 @@ void MainWindow::OnEmployeeRemoved()
     }
 }
 
+void MainWindow::OnEmployeeCleared()
+{
+    qDebug() << "Cleared search";
+
+    ui->lineEdit_6->clear();
+    ui->lineEdit_7->clear();
+    ui->lineEdit_8->clear();
+
+    employees.clear();
+    ui->tableWidget_3->clearContents();
+    ui->tableWidget_3->setRowCount(0);
+}
+
 void MainWindow::OnSearchEmployee()
 {
     QRegularExpression regex("^[A-Za-z]+$");
@@ -1256,6 +1321,8 @@ void MainWindow::SetEmployeesPage(){
     connect(ui->tableWidget_3,&QTableWidget::itemDoubleClicked,this,&MainWindow::OnTableItemEditable);
 
     connect(ui->tableWidget_3,&QTableWidget::itemChanged,this,&MainWindow::OnTableItemChanged);
+
+    connect(ui->pushButton_34,&QPushButton::clicked,this,&MainWindow::OnEmployeeCleared);
 
     ui->tableWidget_3->setColumnWidth(0,130);
     ui->tableWidget_3->setColumnWidth(1,100);

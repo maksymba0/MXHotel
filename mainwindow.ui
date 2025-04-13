@@ -526,7 +526,7 @@
      <enum>Qt::LayoutDirection::LeftToRight</enum>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <property name="movable">
      <bool>false</bool>
@@ -2124,7 +2124,7 @@
       <widget class="QLabel" name="label_17">
        <property name="geometry">
         <rect>
-         <x>530</x>
+         <x>520</x>
          <y>30</y>
          <width>151</width>
          <height>21</height>
@@ -2194,10 +2194,10 @@
       <widget class="QPushButton" name="pushButton_30">
        <property name="geometry">
         <rect>
-         <x>700</x>
+         <x>680</x>
          <y>30</y>
-         <width>91</width>
-         <height>41</height>
+         <width>101</width>
+         <height>51</height>
         </rect>
        </property>
        <property name="text">
@@ -2207,10 +2207,10 @@
       <widget class="QPushButton" name="pushButton_31">
        <property name="geometry">
         <rect>
-         <x>800</x>
+         <x>790</x>
          <y>30</y>
-         <width>91</width>
-         <height>41</height>
+         <width>101</width>
+         <height>51</height>
         </rect>
        </property>
        <property name="text">
@@ -2223,7 +2223,7 @@
          <x>900</x>
          <y>30</y>
          <width>101</width>
-         <height>41</height>
+         <height>51</height>
         </rect>
        </property>
        <property name="text">
@@ -2258,12 +2258,27 @@
       </column>
       <column>
        <property name="text">
-        <string>First name</string>
+        <string>Booking number</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>New Column</string>
+        <string>Name</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Check-in date</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Check-out date</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Room number</string>
        </property>
       </column>
       <column>
@@ -2289,11 +2304,6 @@
         <set>AlignCenter</set>
        </property>
       </item>
-      <item row="0" column="1">
-       <property name="text">
-        <string/>
-       </property>
-      </item>
       <item row="0" column="2">
        <property name="text">
         <string/>
@@ -2304,12 +2314,17 @@
         <string/>
        </property>
       </item>
-      <item row="0" column="4">
+      <item row="0" column="6">
        <property name="text">
         <string/>
        </property>
       </item>
-      <item row="0" column="5">
+      <item row="0" column="7">
+       <property name="text">
+        <string/>
+       </property>
+      </item>
+      <item row="0" column="8">
        <property name="text">
         <string/>
        </property>
