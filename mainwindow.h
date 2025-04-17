@@ -43,6 +43,8 @@ public:
 
     //Customers Page
     void SetCustomersPage();
+    void LoadCustomers();
+
     //Partners Page
     void setPartnersPage();
     //Notifications Page

@@ -598,11 +598,13 @@ void MainWindow::OnCustomerInfoRequested()
     {
         hasSurname = true;
     }
+     regex = QRegularExpression("^[+0-9 ]+$");
     if(ui->lineEdit_3->text() != "" && regex.match(ui->lineEdit_3->text()).hasMatch()) // surname
     {
         hasPhone= true;
     }
-    regex = QRegularExpression("^[+0-9 ]+$");
+
+    regex = QRegularExpression(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
     if(ui->lineEdit_4->text() != "" && regex.match(ui->lineEdit_4->text()).hasMatch()) // surname
     {
         hasEmail = true;
@@ -613,20 +615,21 @@ void MainWindow::OnCustomerInfoRequested()
         hasBookingNum = true;
     }
 
-    QString name = "";
-    QString phone = "";
-    QString email = "";
-    QString bookingNum = "";
-    if(hasName)
-    {
-        name = ui->lineEdit->text() + " ";
-    }
-    if(hasSurname)
-    {
-        name += ui->lineEdit_2->text();
-    }
+    qDebug() << ui->lineEdit_3->text() << " " << ui->lineEdit_4->text() << " " << ui->lineEdit_5->text();
+    QString name = hasName && hasSurname ? ui->lineEdit->text() + " " + ui->lineEdit_2->text()
+                   : hasName ?  ui->lineEdit->text()
+                   : hasSurname ? ui->lineEdit_2->text()
+                   : "";
+    QString phone = hasPhone ? ui->lineEdit_3->text() : "";
+    QString email = hasEmail ? ui->lineEdit_4->text() : "";
+    QString bookingNum = hasBookingNum ? ui->lineEdit_5->text() : "";
 
-    QString Query = "Name:"+name+" Phone:"+phone+" Email:"+email+" booking:"+bookingNum;
+
+    QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4")
+                        .arg(name)
+                        .arg(phone)
+                        .arg(email)
+                        .arg(bookingNum);
 
     qDebug() << " Sending request" << Query;
 
@@ -1516,6 +1519,8 @@ Employee *MainWindow::GetEmployeeByName(QString Name)
     return nullptr;
 }
 void MainWindow::SetCustomersPage(){
+
+    connect(ui->pushButton_30,&QPushButton::clicked,this,&MainWindow::OnCustomerInfoRequested);
 
 }
 void MainWindow::setPartnersPage(){
