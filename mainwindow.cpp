@@ -362,14 +362,14 @@ void MainWindow::OnSavedChanges()
     }
 
 }
-void MainWindow::OnCustomerBanned()
+void MainWindow::OnBookingCustomerBanned()
 {
 
     qDebug() << "OnCustomerBanned";
 }
-void MainWindow::OnCustomerCreated(){
+void MainWindow::OnBookingCustomerCreated(){
 
-    qDebug() << "OnCustomerCreated";
+    qDebug() << "OnBookingCustomerCreated";
     int count = ui->tableWidget->rowCount();
     if(count >= 5)
     {
@@ -401,7 +401,7 @@ void MainWindow::OnCustomerCreated(){
     getBooking()->setIsModified(true);
     LoadBooking();
 }
-void MainWindow::OnCustomerRemoved(){
+void MainWindow::OnBookingCustomerRemoved(){
 
     qDebug() << "OnCustomerRemoved";
     QSet<int> rows;
@@ -479,7 +479,7 @@ void MainWindow::OnCustomerRemoved(){
         }
     }
 }
-void MainWindow::OnCustomerCheckedOut(){
+void MainWindow::OnBookingCustomerCheckedOut(){
 
     qDebug() << "OnCustomerCheckedOut";
     QSet<int> rows;
@@ -530,7 +530,7 @@ void MainWindow::OnCustomerCheckedOut(){
 
     }
 }
-void MainWindow::OnCustomerCheckedIn(){
+void MainWindow::OnBookingCustomerCheckedIn(){
 
     qDebug() << "OnCustomerCheckedIn";
     QSet<int> rows;
@@ -1155,15 +1155,15 @@ void MainWindow::SetBookingPage()
     // savechanges
     connect(ui->pushButton,&QPushButton::clicked,this,&MainWindow::OnSavedChanges);
     // check in
-    connect(ui->pushButton_2,&QPushButton::clicked,this,&MainWindow::OnCustomerCheckedIn);
+    connect(ui->pushButton_2,&QPushButton::clicked,this,&MainWindow::OnBookingCustomerCheckedIn);
     // check out
-    connect(ui->pushButton_3,&QPushButton::clicked,this,&MainWindow::OnCustomerCheckedOut);
+    connect(ui->pushButton_3,&QPushButton::clicked,this,&MainWindow::OnBookingCustomerCheckedOut);
     // remove
-    connect(ui->pushButton_4,&QPushButton::clicked,this,&MainWindow::OnCustomerRemoved);
+    connect(ui->pushButton_4,&QPushButton::clicked,this,&MainWindow::OnBookingCustomerRemoved);
     // create
-    connect(ui->pushButton_5,&QPushButton::clicked,this,&MainWindow::OnCustomerCreated);
+    connect(ui->pushButton_5,&QPushButton::clicked,this,&MainWindow::OnBookingCustomerCreated);
     // ban
-    connect(ui->pushButton_6,&QPushButton::clicked,this,&MainWindow::OnCustomerBanned);
+    connect(ui->pushButton_6,&QPushButton::clicked,this,&MainWindow::OnBookingCustomerBanned);
     // new booking, reset
     connect(ui->pushButton_7,&QPushButton::clicked,this,&MainWindow::OnNewBooking);
     // change room

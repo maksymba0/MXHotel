@@ -52,11 +52,11 @@ static constexpr auto qt_meta_stringdata_ZN10MainWindowE = QtMocHelpers::stringD
     "QTableWidgetItem*",
     "item",
     "OnTableItemChanged",
-    "OnCustomerBanned",
-    "OnCustomerCreated",
-    "OnCustomerRemoved",
-    "OnCustomerCheckedOut",
-    "OnCustomerCheckedIn",
+    "OnBookingCustomerBanned",
+    "OnBookingCustomerCreated",
+    "OnBookingCustomerRemoved",
+    "OnBookingCustomerCheckedOut",
+    "OnBookingCustomerCheckedIn",
     "OnCustomerInfoRequested",
     "OnSavedChanges",
     "OnNewBooking",
@@ -165,15 +165,15 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         // method 'OnTableItemChanged'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<QTableWidgetItem *, std::false_type>,
-        // method 'OnCustomerBanned'
+        // method 'OnBookingCustomerBanned'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'OnCustomerCreated'
+        // method 'OnBookingCustomerCreated'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'OnCustomerRemoved'
+        // method 'OnBookingCustomerRemoved'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'OnCustomerCheckedOut'
+        // method 'OnBookingCustomerCheckedOut'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'OnCustomerCheckedIn'
+        // method 'OnBookingCustomerCheckedIn'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'OnCustomerInfoRequested'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
@@ -209,11 +209,11 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 6: _t->OnRoomInfoRequested((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 7: _t->OnTableItemEditable((*reinterpret_cast< std::add_pointer_t<QTableWidgetItem*>>(_a[1]))); break;
         case 8: _t->OnTableItemChanged((*reinterpret_cast< std::add_pointer_t<QTableWidgetItem*>>(_a[1]))); break;
-        case 9: _t->OnCustomerBanned(); break;
-        case 10: _t->OnCustomerCreated(); break;
-        case 11: _t->OnCustomerRemoved(); break;
-        case 12: _t->OnCustomerCheckedOut(); break;
-        case 13: _t->OnCustomerCheckedIn(); break;
+        case 9: _t->OnBookingCustomerBanned(); break;
+        case 10: _t->OnBookingCustomerCreated(); break;
+        case 11: _t->OnBookingCustomerRemoved(); break;
+        case 12: _t->OnBookingCustomerCheckedOut(); break;
+        case 13: _t->OnBookingCustomerCheckedIn(); break;
         case 14: _t->OnCustomerInfoRequested(); break;
         case 15: _t->OnSavedChanges(); break;
         case 16: _t->OnNewBooking(); break;

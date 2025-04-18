@@ -75,11 +75,11 @@ private slots:
     void OnTableItemEditable(QTableWidgetItem* item);
     void OnTableItemChanged(QTableWidgetItem* item);
 
-    void OnCustomerBanned();
-    void OnCustomerCreated();
-    void OnCustomerRemoved();
-    void OnCustomerCheckedOut();
-    void OnCustomerCheckedIn();
+    void OnBookingCustomerBanned();
+    void OnBookingCustomerCreated();
+    void OnBookingCustomerRemoved();
+    void OnBookingCustomerCheckedOut();
+    void OnBookingCustomerCheckedIn();
     void OnCustomerInfoRequested();
 
 
