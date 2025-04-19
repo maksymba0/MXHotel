@@ -81,6 +81,9 @@ private slots:
     void OnBookingCustomerCheckedOut();
     void OnBookingCustomerCheckedIn();
     void OnCustomerInfoRequested();
+    void OnNewCustomerCreated();
+    void OnSelectedCustomerRemoved();
+
 
 
     void OnSavedChanges();
@@ -100,6 +103,10 @@ private:
     QList<Customer> customers;
 
     Ui::MainWindow *ui;
+public:
+    bool CustomerPageBeenModified = false;
+
+
 
 };
 #endif // MAINWINDOW_H

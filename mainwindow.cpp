@@ -612,10 +612,13 @@ void MainWindow::OnCustomerInfoRequested()
     regex = QRegularExpression("^[A-Za-z]+$");
     if(ui->lineEdit_5->text() != "" && regex.match(ui->lineEdit_5->text()).hasMatch()) // first name
     {
-        hasBookingNum = true;
+        if(ui->lineEdit_5->text().size() == 6)
+        {
+            hasBookingNum = true;
+        }
     }
 
-    qDebug() << ui->lineEdit_3->text() << " " << ui->lineEdit_4->text() << " " << ui->lineEdit_5->text();
+    //qDebug() << ui->lineEdit_3->text() << " " << ui->lineEdit_4->text() << " " << ui->lineEdit_5->text();
     QString name = hasName && hasSurname ? ui->lineEdit->text() + " " + ui->lineEdit_2->text()
                    : hasName ?  ui->lineEdit->text()
                    : hasSurname ? ui->lineEdit_2->text()
@@ -631,10 +634,127 @@ void MainWindow::OnCustomerInfoRequested()
                         .arg(email)
                         .arg(bookingNum);
 
-    qDebug() << " Sending request" << Query;
+    qDebug() << "Searching Customer: Sending request" << Query;
 
 }
 
+void MainWindow::OnNewCustomerCreated()
+{
+    bool hasName = false;
+    bool hasSurname = false;
+    bool hasPhone = false;
+    bool hasEmail = false;
+    bool hasBookingNum = false;
+
+
+    QRegularExpression regex("^[A-Za-z]+$");
+    if(ui->lineEdit->text() != "" && regex.match(ui->lineEdit->text()).hasMatch()) // first name
+    {
+        hasName = true;
+    }
+    if(ui->lineEdit_2->text() != "" && regex.match(ui->lineEdit_2->text()).hasMatch()) // surname
+    {
+        hasSurname = true;
+    }
+    regex = QRegularExpression("^[+0-9 ]+$");
+    if(ui->lineEdit_3->text() != "" && regex.match(ui->lineEdit_3->text()).hasMatch()) // surname
+    {
+        hasPhone= true;
+    }
+
+    regex = QRegularExpression(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
+    if(ui->lineEdit_4->text() != "" && regex.match(ui->lineEdit_4->text()).hasMatch()) // surname
+    {
+        hasEmail = true;
+    }
+    regex = QRegularExpression("^[A-Za-z]+$");
+    if(ui->lineEdit_5->text() != "" && regex.match(ui->lineEdit_5->text()).hasMatch()) // first name
+    {
+        if(ui->lineEdit_5->text().size() == 6)
+        {
+            hasBookingNum = true;
+        }
+    }
+
+    //qDebug() << ui->lineEdit_3->text() << " " << ui->lineEdit_4->text() << " " << ui->lineEdit_5->text();
+    QString name = hasName && hasSurname ? ui->lineEdit->text() + " " + ui->lineEdit_2->text()
+                   : hasName ?  ui->lineEdit->text()
+                   : hasSurname ? ui->lineEdit_2->text()
+                                         : "";
+    QString phone = hasPhone ? ui->lineEdit_3->text() : "";
+    QString email = hasEmail ? ui->lineEdit_4->text() : "";
+    QString bookingNum = hasBookingNum ? ui->lineEdit_5->text() : "";
+
+    QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4")
+                        .arg(name)
+                        .arg(phone)
+                        .arg(email)
+                        .arg(bookingNum);
+
+    qDebug() << "Creating customer: Sending request" << Query;
+
+}
+
+void MainWindow::OnSelectedCustomerRemoved()
+{
+    qDebug() << "OnCustomerRemoved";
+
+    QSet<int> rows;
+
+    // Change information on booking
+    auto CustomerTable = ui->tableWidget_4;
+
+    QList<QTableWidgetItem*> selectedItems = CustomerTable->selectedItems();
+
+    if(selectedItems.empty())
+    {
+        return;
+    }
+
+
+
+
+
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+
+    for(auto& Row : rows)
+    {
+        auto NameWidget = CustomerTable->item(Row,0);
+        if(!NameWidget)
+        {
+            continue;
+        }
+
+        QString name = CustomerTable->item(Row,2)->text();//ui->lineEdit->text() + " " + ui->lineEdit_2->text();
+        QString phone = CustomerTable->item(Row,5)->text();;
+        QString ID = CustomerTable->item(Row,0)->text();
+        QString email = CustomerTable->item(Row,7)->text();
+        QString bookingNum = CustomerTable->item(Row,1)->text();
+        QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4/")
+                            .arg(name)
+                            .arg(phone)
+                            .arg(email)
+                            .arg(bookingNum);
+
+        qDebug() << "Removing customer: Sending request" << Query;
+
+        bool IsSuccess = false;
+
+
+        IsSuccess  = true;
+        // for each selected row
+        CustomerTable->removeRow(Row);
+        if(IsSuccess)
+        {
+            QMessageBox::information(this,"REMOVE SUCCESS",name + " has been removed!");
+        }
+    }
+
+}
 void MainWindow::OnNewBooking()
 {
     getBooking()->Clear();
@@ -1521,6 +1641,9 @@ Employee *MainWindow::GetEmployeeByName(QString Name)
 void MainWindow::SetCustomersPage(){
 
     connect(ui->pushButton_30,&QPushButton::clicked,this,&MainWindow::OnCustomerInfoRequested);
+    connect(ui->pushButton_31,&QPushButton::clicked,this,&MainWindow::OnNewCustomerCreated);
+    connect(ui->pushButton_32,&QPushButton::clicked,this,&MainWindow::OnSelectedCustomerRemoved);
+
 
 }
 void MainWindow::setPartnersPage(){
