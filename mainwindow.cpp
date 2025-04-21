@@ -685,6 +685,11 @@ void MainWindow::OnNewCustomerCreated()
     QString email = hasEmail ? ui->lineEdit_4->text() : "";
     QString bookingNum = hasBookingNum ? ui->lineEdit_5->text() : "";
 
+    if(!hasName)
+    {
+        QMessageBox::warning(this,"Create customer","Failed to create a new customer: Missing name.");
+        return;
+    }
     QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4")
                         .arg(name)
                         .arg(phone)
@@ -692,6 +697,42 @@ void MainWindow::OnNewCustomerCreated()
                         .arg(bookingNum);
 
     qDebug() << "Creating customer: Sending request" << Query;
+
+    // Here we will get from the database the ID and status if creating new one, or we already have the existing user with this name and data.
+    // from Booking number we will get the last room
+
+    auto CustomerTable = ui->tableWidget_4;
+    auto count = CustomerTable->rowCount();
+    CustomerTable->insertRow(count);
+    qDebug() << "rows: "<<CustomerTable->rowCount();
+    int columnNum = CustomerTable->columnCount();
+
+    UCustomer customer;
+    customer.setName(name);
+    customer.setEmail(email);
+    customer.setPhonenumber(phone);
+    customer.setBookingNumber(bookingNum);
+
+
+    uCustomers.push_back(customer);
+    for(int i = 0 ; i < columnNum; ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem(" ");
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        CustomerTable->setItem(CustomerTable->rowCount()-1,i,item);
+        auto Widget = CustomerTable->item(CustomerTable->rowCount()-1,i);
+        if(Widget)
+        {
+            Widget->setBackground(QColor(0x545454));
+        }
+        else
+        {
+            qDebug() << "Reading nullptr;";
+        }
+    }
+    QMessageBox::about(this,"Customer Created","Please make sure to add data to the customer.");
+
+    LoadCustomers();
 
 }
 
@@ -1645,6 +1686,55 @@ void MainWindow::SetCustomersPage(){
     connect(ui->pushButton_32,&QPushButton::clicked,this,&MainWindow::OnSelectedCustomerRemoved);
 
 
+}
+
+void MainWindow::LoadCustomers()
+{
+    this->blockSignals(true);
+    auto CustomerTable = ui->tableWidget_4;
+
+    if(uCustomers.empty())
+    {
+        CustomerTable->clearContents();
+        CustomerTable->setRowCount(0);
+    }
+    else
+    {
+        for(int i = 0 ; i < uCustomers.size(); ++i)
+        {
+            auto customer = uCustomers[i];
+
+
+            int RowCount = CustomerTable->rowCount();
+            if(i > RowCount-1)
+            {
+               CustomerTable->insertRow(RowCount); // Insert at the end
+            }
+            CustomerTable->setItem(i,0,new QTableWidgetItem(customer.getID()));
+            CustomerTable->item(i,0)->setFlags(CustomerTable->item(i,0)->flags() & ~Qt::ItemIsEditable);
+
+            CustomerTable->setItem(i,1,new QTableWidgetItem(customer.getBookingNumber()));
+            CustomerTable->item(i,1)->setFlags(CustomerTable->item(i,1)->flags() & ~Qt::ItemIsEditable);
+
+            CustomerTable->setItem(i,2,new QTableWidgetItem(customer.getName()));
+            CustomerTable->item(i,2)->setFlags(CustomerTable->item(i,2)->flags() & ~Qt::ItemIsEditable);
+
+            CustomerTable->setItem(i,3,new QTableWidgetItem(customer.getLastRoom()));
+            CustomerTable->item(i,3)->setFlags(CustomerTable->item(i,3)->flags() & ~Qt::ItemIsEditable);
+
+            CustomerTable->setItem(i,4,new QTableWidgetItem(customer.getPhonenumber()));
+            CustomerTable->item(i,4)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+
+            CustomerTable->setItem(i,5,new QTableWidgetItem(customer.getEmail()));
+            CustomerTable->item(i,5)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+
+            CustomerTable->setItem(i,6,new QTableWidgetItem(customer.getInformation()));
+            CustomerTable->item(i,6)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+
+        }
+    }
+
+    this->blockSignals(false);
 }
 void MainWindow::setPartnersPage(){
 

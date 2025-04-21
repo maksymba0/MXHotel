@@ -16,7 +16,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     payment.cpp \
-    thememanager.cpp
+    thememanager.cpp \
+    ucustomer.cpp
 
 HEADERS += \
     booking.h \
@@ -25,7 +26,8 @@ HEADERS += \
     employee.h \
     mainwindow.h \
     payment.h \
-    thememanager.h
+    thememanager.h \
+    ucustomer.h
 
 FORMS += \
     mainwindow.ui

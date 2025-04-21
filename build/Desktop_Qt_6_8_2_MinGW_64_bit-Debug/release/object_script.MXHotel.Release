@@ -6,5 +6,6 @@ release/main.o
 release/mainwindow.o
 release/payment.o
 release/thememanager.o
+release/ucustomer.o
 release/moc_calendardialog.o
 release/moc_mainwindow.o

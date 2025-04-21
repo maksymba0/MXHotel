@@ -7,6 +7,7 @@
 #include "booking.h"
 #include "employee.h"
 #include "payment.h"
+#include "ucustomer.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -101,6 +102,8 @@ private:
     QList<Employee> employees;
 
     QList<Customer> customers;
+
+    QList<UCustomer> uCustomers;
 
     Ui::MainWindow *ui;
 public:

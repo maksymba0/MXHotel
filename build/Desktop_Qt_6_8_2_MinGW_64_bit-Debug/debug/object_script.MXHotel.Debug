@@ -6,5 +6,6 @@ debug/main.o
 debug/mainwindow.o
 debug/payment.o
 debug/thememanager.o
+debug/ucustomer.o
 debug/moc_calendardialog.o
 debug/moc_mainwindow.o
