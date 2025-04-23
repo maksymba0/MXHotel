@@ -137,7 +137,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
-        MainWindow->resize(1168, 695);
+        MainWindow->resize(1158, 666);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
         centralwidget->setEnabled(true);
@@ -761,7 +761,7 @@ public:
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
         menubar->setEnabled(true);
-        menubar->setGeometry(QRect(0, 0, 1168, 26));
+        menubar->setGeometry(QRect(0, 0, 1158, 26));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName("statusbar");
@@ -769,7 +769,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(3);
+        tabWidget->setCurrentIndex(0);
         tabWidget_2->setCurrentIndex(1);
         tabWidget_3->setCurrentIndex(3);
 
@@ -893,7 +893,7 @@ public:
         QTableWidgetItem *___qtablewidgetitem17 = tableWidget_4->horizontalHeaderItem(2);
         ___qtablewidgetitem17->setText(QCoreApplication::translate("MainWindow", "Name", nullptr));
         QTableWidgetItem *___qtablewidgetitem18 = tableWidget_4->horizontalHeaderItem(3);
-        ___qtablewidgetitem18->setText(QCoreApplication::translate("MainWindow", "Last Room number", nullptr));
+        ___qtablewidgetitem18->setText(QCoreApplication::translate("MainWindow", "Last Room", nullptr));
         QTableWidgetItem *___qtablewidgetitem19 = tableWidget_4->horizontalHeaderItem(4);
         ___qtablewidgetitem19->setText(QCoreApplication::translate("MainWindow", "Phone number", nullptr));
         QTableWidgetItem *___qtablewidgetitem20 = tableWidget_4->horizontalHeaderItem(5);

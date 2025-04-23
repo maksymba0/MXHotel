@@ -45,6 +45,9 @@ public:
     //Customers Page
     void SetCustomersPage();
     void LoadCustomers();
+    UCustomer* GetCustomerByID(int ID);
+    UCustomer* GetCustomerByName(QString Name);
+    void AddCustomer(UCustomer* customer);
 
     //Partners Page
     void setPartnersPage();
@@ -60,6 +63,15 @@ public:
     Payment RandomPayment();
     Booking* getBooking();
     void setBooking(const Booking &newBooking);
+
+    // Database DB RELATED funcs
+
+    bool DBExistsBooking();
+    bool DBCreateNewBooking();
+    bool DBUpdateBooking();
+    bool DBClearBooking();
+    bool DBRemoveBooking();
+
 
 private slots:
 

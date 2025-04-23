@@ -6,9 +6,12 @@
 #include <QVBoxLayout>
 #include <QRandomGenerator>
 #include <QMessageBox>
+#include <QSqlQuery>
 #include "calendardialog.h"
 #include <QInputDialog>
 #include "employee.h"
+#include <QSqlDatabase>
+#include <QSqlError>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -31,6 +34,20 @@ MainWindow::MainWindow(QWidget *parent)
     UpdateTheme((int)Themes::DEFAULT);
 
 
+    QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
+    db.setHostName("localhost");  // or your server IP
+    db.setPort(5432);             // default PostgreSQL port
+    db.setDatabaseName("mxhoteldb");
+    db.setUserName("postgres");
+    db.setPassword("postgresqlpassword1337");
+
+    if(db.open())
+    {
+        qDebug() << "Connected to the database";
+    }else
+    {
+        QMessageBox::warning(this,"Database connection","Failed to connect to the database");
+    }
 
 
 }
@@ -325,10 +342,31 @@ void MainWindow::OnSavedChanges()
         switch(reply)
         {
         case QMessageBox::Yes:
-            QMessageBox::information(this,"Save change - success","Booking has been created.");
-            this->getBooking()->setBookingNumber(this->RandomBookingNumber());
-            this->getBooking()->setIsBeingCreated(false);
-            LoadBooking();
+
+            getBooking()->setBookingNumber(this->RandomBookingNumber());
+            if(!DBExistsBooking())
+            {
+
+                if(DBCreateNewBooking())
+                {
+                    // Create - Success
+
+                    QMessageBox::information(this,"Create booking - success","Booking has been created.");
+                    this->getBooking()->setIsBeingCreated(false);
+                    this->getBooking()->setIsModified(false);
+                    LoadBooking();
+                }
+                else
+                {
+                    QMessageBox::warning(this,"Create booking- failure","Failed to create booking");
+                    // Create - Failure
+                }
+                //Not exists
+            }
+            else
+            {
+                //Exists
+            }
             break;
         case QMessageBox::No:
         default:
@@ -636,6 +674,19 @@ void MainWindow::OnCustomerInfoRequested()
 
     qDebug() << "Searching Customer: Sending request" << Query;
 
+    // TODO: Get info from Server and load it into the table
+
+    UCustomer customer;
+    customer.setID(uCustomers.size()+1);
+    customer.setEmail("test.email@gmail.com");
+    customer.setInformation("** VIP **");
+    customer.setName("Max Test");
+    customer.setPhonenumber("+123 456 789");
+
+    AddCustomer(&customer);
+    LoadCustomers();
+    qDebug() << " UCustomers has " << uCustomers.size() << " customers";
+
 }
 
 void MainWindow::OnNewCustomerCreated()
@@ -701,6 +752,10 @@ void MainWindow::OnNewCustomerCreated()
     // Here we will get from the database the ID and status if creating new one, or we already have the existing user with this name and data.
     // from Booking number we will get the last room
 
+    int ID = QRandomGenerator::global()->bounded(100);
+    bool FoundInDatabase = false;
+
+
     auto CustomerTable = ui->tableWidget_4;
     auto count = CustomerTable->rowCount();
     CustomerTable->insertRow(count);
@@ -712,7 +767,7 @@ void MainWindow::OnNewCustomerCreated()
     customer.setEmail(email);
     customer.setPhonenumber(phone);
     customer.setBookingNumber(bookingNum);
-
+    customer.setID(ID);
 
     uCustomers.push_back(customer);
     for(int i = 0 ; i < columnNum; ++i)
@@ -771,9 +826,9 @@ void MainWindow::OnSelectedCustomerRemoved()
         }
 
         QString name = CustomerTable->item(Row,2)->text();//ui->lineEdit->text() + " " + ui->lineEdit_2->text();
-        QString phone = CustomerTable->item(Row,5)->text();;
+        QString phone = CustomerTable->item(Row,4)->text();;
         QString ID = CustomerTable->item(Row,0)->text();
-        QString email = CustomerTable->item(Row,7)->text();
+        QString email = CustomerTable->item(Row,5   )->text();
         QString bookingNum = CustomerTable->item(Row,1)->text();
         QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4/")
                             .arg(name)
@@ -789,9 +844,17 @@ void MainWindow::OnSelectedCustomerRemoved()
         IsSuccess  = true;
         // for each selected row
         CustomerTable->removeRow(Row);
+        auto customer = GetCustomerByID(ID.toInt());
+        if(customer)
+        {
+            uCustomers.removeOne(*customer);
+        }
         if(IsSuccess)
         {
             QMessageBox::information(this,"REMOVE SUCCESS",name + " has been removed!");
+        }else
+        {
+            QMessageBox::warning(this,"REMOVE FAILURE",name + " has not been removed due to an error!");
         }
     }
 
@@ -941,6 +1004,99 @@ Booking* MainWindow::getBooking()
 void MainWindow::setBooking(const Booking &newBooking)
 {
     booking = newBooking;
+}
+
+// Database DB Related
+
+bool MainWindow::DBExistsBooking()
+{
+    auto booking = getBooking();
+
+    // Step 1: Check for duplicate booking number
+    QSqlQuery checkNumber;
+    checkNumber.prepare("SELECT COUNT(*) FROM Booking WHERE booking_number = :bookingNumber");
+    checkNumber.bindValue(":bookingNumber", booking->getBookingNumber());
+
+    if (!checkNumber.exec() || !checkNumber.next()) {
+        qDebug() << "Booking number check failed:" << checkNumber.lastError();
+        return true;
+    }
+
+    if (checkNumber.value(0).toInt() > 0) {
+        QMessageBox::warning(this, "Booking Error", "A booking with this number already exists.");
+        return true;
+    }
+
+    // Step 2: Check for booking conflict by room/date
+    QSqlQuery checkConflict;
+    checkConflict.prepare(R"(
+        SELECT COUNT(*) FROM Booking
+        WHERE room_number = :roomNumber
+        AND NOT (
+            checkout_date <= :checkin OR
+            checkin_date >= :checkout
+        )
+    )");
+    checkConflict.bindValue(":roomNumber", booking->getRoomNumber());
+    checkConflict.bindValue(":checkin", booking->getCheckedinDate());
+    checkConflict.bindValue(":checkout", booking->getCheckoutDate());
+
+    if (!checkConflict.exec() || !checkConflict.next()) {
+        qDebug() << "Room conflict check failed:" << checkConflict.lastError();
+        return true;
+    }
+
+    if (checkConflict.value(0).toInt() > 0) {
+        QMessageBox::warning(this, "Room Conflict", "This room is already booked for the selected dates.");
+        return true;
+    }
+
+    return false;
+
+
+}
+
+bool MainWindow::DBCreateNewBooking()
+{
+    auto booking = getBooking();
+    // Step 3: Proceed with creation
+    QSqlQuery insert;
+    insert.prepare(R"(
+        INSERT INTO Booking (booking_number, created_date, checkin_date, checkout_date, room_number,
+                             booker_name, booker_email, booker_phonenumber, notes)
+        VALUES (:bookingNumber, :created, :checkin, :checkout, :room,
+                :name, :email, :phone, :notes)
+    )");
+    insert.bindValue(":bookingNumber", booking->getBookingNumber());
+    insert.bindValue(":created", booking->getCreatedDate());
+    insert.bindValue(":checkin", booking->getCheckedinDate());
+    insert.bindValue(":checkout", booking->getCheckoutDate());
+    insert.bindValue(":room", booking->getRoomNumber());
+    insert.bindValue(":name", booking->getBookerName());
+    insert.bindValue(":email", booking->getBookerEmail());
+    insert.bindValue(":phone", booking->getBookerPhonenumber());
+    insert.bindValue(":notes", booking->getNotes());
+
+    if (!insert.exec()) {
+        qDebug() << "Insert failed:" << insert.lastError();
+        return false;
+    }
+    return true;
+}
+bool MainWindow::DBUpdateBooking()
+{
+
+    return true;
+}
+bool MainWindow::DBClearBooking()
+{
+
+    return true;
+}
+bool MainWindow::DBRemoveBooking()
+{
+
+    return true;
 }
 
 void MainWindow::OnEmployeeCreated()
@@ -1312,6 +1468,10 @@ void MainWindow::SetBookingPage()
     ui->tableWidget->setToolTip("Double click a cell to make the row editable/uneditable");
     connect(ui->tableWidget,&QTableWidget::itemChanged,this,&MainWindow::OnTableItemChanged);
     connect(ui->tableWidget_2,&QTableWidget::itemChanged,this,&MainWindow::OnTableItemChanged);
+
+    connect(ui->textEdit,&QTextEdit::textChanged,this,[this] {
+        this->getBooking()->setNotes(ui->textEdit->toPlainText());
+    });
 
     // savechanges
     connect(ui->pushButton,&QPushButton::clicked,this,&MainWindow::OnSavedChanges);
@@ -1710,7 +1870,7 @@ void MainWindow::LoadCustomers()
             {
                CustomerTable->insertRow(RowCount); // Insert at the end
             }
-            CustomerTable->setItem(i,0,new QTableWidgetItem(customer.getID()));
+            CustomerTable->setItem(i,0,new QTableWidgetItem(QString::number(customer.getID())));
             CustomerTable->item(i,0)->setFlags(CustomerTable->item(i,0)->flags() & ~Qt::ItemIsEditable);
 
             CustomerTable->setItem(i,1,new QTableWidgetItem(customer.getBookingNumber()));
@@ -1735,6 +1895,39 @@ void MainWindow::LoadCustomers()
     }
 
     this->blockSignals(false);
+}
+
+UCustomer *MainWindow::GetCustomerByID(int ID)
+{
+    for(auto& customer : uCustomers)
+    {
+        if(customer.getID() == ID)
+        {
+            return &customer;
+        }
+    }
+}
+
+UCustomer *MainWindow::GetCustomerByName(QString Name)
+{
+
+    for(auto& customer : uCustomers)
+    {
+        if(customer.getName() == Name)
+        {
+            return &customer;
+        }
+    }
+}
+
+void MainWindow::AddCustomer(UCustomer *customer)
+{
+    if(!uCustomers.contains(*customer))
+    {
+        uCustomers.push_back(*customer);
+    }
+    return;
+
 }
 void MainWindow::setPartnersPage(){
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1168</width>
-    <height>695</height>
+    <width>1158</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -526,7 +526,7 @@
      <enum>Qt::LayoutDirection::LeftToRight</enum>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <property name="movable">
      <bool>false</bool>
@@ -2263,7 +2263,7 @@
       </column>
       <column>
        <property name="text">
-        <string>Last Room number</string>
+        <string>Last Room</string>
        </property>
       </column>
       <column>
@@ -2521,7 +2521,7 @@ margin-left: 22px;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1168</width>
+     <width>1158</width>
      <height>26</height>
     </rect>
    </property>
