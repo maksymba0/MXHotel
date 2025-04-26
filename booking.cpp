@@ -183,7 +183,7 @@ void Booking::Clear()
     this->setCreatedDate(currentDate);
     this->setRoomNumber(-1);
     this->setNotes("");
-    this->getCustomers().erase(getCustomers().begin(),getCustomers().end());
+    this->getCustomers().clear();
     this->getPayments().clear();
     this->setIsBeingCreated(true);
     this->setIsModified(false);

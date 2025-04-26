@@ -72,6 +72,9 @@ public:
     bool DBClearBooking();
     bool DBRemoveBooking();
 
+    bool DBCreateEmployee();
+    bool DBRemoveEmployee();
+
 
 private slots:
 

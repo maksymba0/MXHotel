@@ -69,10 +69,11 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
 {
     ui->tabWidget->setCurrentIndex(0);
 
+    RoomName.remove("BookingRoom_");
+    int RoomNumber = RoomName.toInt();
+
     if(getBooking()->getIsChangingRoom())
     {
-        RoomName.remove("BookingRoom_");
-        int RoomNumber = RoomName.toInt();
         qDebug() << "Selected Room #" << RoomNumber;
         this->getBooking()->setRoomNumber(RoomNumber);
         getBooking()->setIsChangingRoom(false);
@@ -84,62 +85,113 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
 
     Booking newbkg;
     Booking* booking = &newbkg;
-    booking->setBookerEmail("admin.admin@gmail.com");
-    booking->setBookerName("Maksy Creator");
-    booking->setBookerPhonenumber("+44 123 123 123");
-    booking->setBookingNumber(RandomBookingNumber());
-    const auto date = QDateTime::currentDateTime();
-    booking->setCheckedinDate(date.addDays(1));
-    booking->setCheckoutDate(date.addDays(2));
-    booking->setCreatedDate(date.addDays(0));
-    booking->setRoomNumber(0);
-    Customer customer;
-    customer.setPhonenumber("+44 123 123 123");
 
-    customer.setDob(QDate(2002,01,15));
-    customer.setAge();
-    customer.setName("Daniel Ricardo");
-    customer.setDocumentNumber("KHTAIR9291");
-    customer.setDocumentType("ID Card");
-    customer.setCheckedIn(false);
-    booking->addCustomer(customer);
-    customer.setPhonenumber("+380 95 128 190");
 
-    customer.setDob(QDate(1998,11,26));
-    customer.setAge();
-    customer.setName("Vlad Kroker");
-    customer.setDocumentNumber("MI299DAS0");
-    customer.setDocumentType("Passport");
-    customer.setCheckedIn(false);
-    booking->addCustomer(customer);
-    customer.setPhonenumber("+380 68 330 110");
+    //  BOOKING DETAILS
+    QSqlQuery query;
+    query.prepare(R"(
+    SELECT * from Booking
+    WHERE room_number = :roomNumber
+                  )");
+    query.bindValue(":roomNumber",RoomNumber);
+    int bookingId = -1;
+    if (query.exec()) {
+        if (query.next()) {
+            booking->setBookingNumber(query.value("booking_number").toString());
+            booking->setCreatedDate(query.value("created_date").toDateTime());
+            booking->setCheckedinDate(query.value("checkin_date").toDateTime());
+            booking->setCheckoutDate(query.value("checkout_date").toDateTime());
+            booking->setRoomNumber(query.value("room_number").toInt());
+            booking->setBookerName(query.value("booker_name").toString());
+            booking->setBookerEmail(query.value("booker_email").toString());
+            booking->setBookerPhonenumber(query.value("booker_phonenumber").toString());
+            booking->setNotes(query.value("notes").toString());
+            bookingId = query.value("booking_id").toInt();
+        } else {
+            qDebug() << "No booking found for room" << RoomNumber;
+            auto response = QMessageBox::question(this,"Map - Retrieve booking","No booking find for this room. Do you Want to book it?");
+            if(response == QMessageBox::Yes)
+            {
+                booking->Clear();
 
-    customer.setDob(QDate(2003,05,14));
-    customer.setAge();
-    customer.setName("Zombuz Stepankov");
-    customer.setDocumentNumber("PIV920OO");
-    customer.setDocumentType("Refugee passport");
-    customer.setCheckedIn(false);
-    booking->addCustomer(customer);
+                ui->tableWidget->clearContents();
+                ui->tableWidget->setRowCount(0);
+                ui->tableWidget_2->clearContents();
+                ui->tableWidget_2->setRowCount(0);
+            }else
+            {
+                //No
+            }
+            return;
+        }
+    } else {
+        qDebug() << "Booking query failed:" << query.lastError() << " .Please try create a new booking";
+        return;
+    }
+
+
+    if(bookingId)
+    {
+        ui->tableWidget->clearContents();
+        ui->tableWidget->setRowCount(0);
+        ui->tableWidget_2->clearContents();
+        ui->tableWidget_2->setRowCount(0);
+        // CUSTOMER DETAILS
+        QSqlQuery customerQuery;
+        customerQuery.prepare(R"(
+    SELECT * from Booking_Customer WHERE booking_id = :bookingId
+                  )");
+        customerQuery.bindValue(":bookingId",bookingId);
+        if(customerQuery.exec())
+        {
+            while(customerQuery.next())
+            {
+                Customer customer;
+                customer.setName(customerQuery.value("name").toString());
+                customer.setEmail(customerQuery.value("email").toString());
+                customer.setPhonenumber(customerQuery.value("phonenumber").toString());
+                customer.setDocumentType(customerQuery.value("document_type").toString());
+                customer.setDocumentNumber(customerQuery.value("document_number").toString());
+                customer.setAge();
+                customer.setDob(customerQuery.value("dob").toDate());
+                customer.setCheckedIn(customerQuery.value("checked_in").toBool());
+
+                booking->addCustomer(customer);
+            }
+        }else {
+            qDebug() << "Failed to fetch customers:" << customerQuery.lastError();
+        }
+        // PAYMENT DETAILS
+        QSqlQuery paymentQuery;
+        paymentQuery.prepare(R"(
+    SELECT * from Payment WHERE booking_id = :bookingId
+                  )");
+        paymentQuery.bindValue(":bookingId",bookingId);
+        if(paymentQuery.exec())
+        {
+            while(paymentQuery.next())
+            {
+                Payment payment;
+                payment.setAmount(paymentQuery.value("amount").toFloat());
+                payment.setCurrency(paymentQuery.value("currency").toString());
+                payment.setMethod(paymentQuery.value("method").toString());
+                booking->addPayment(payment);
+            }
+        }else {
+            qDebug() << "Failed to fetch payments:" << paymentQuery.lastError();
+        }
+    }
 
     booking->setIsBeingCreated(false);
-
-    for(int i = 0; i < 3; i++)
-    {
-        Payment payment;
-        payment.PopulateWithRandomValues();
-       // payment.Print();
-        booking->addPayment(payment);
-    }
     // Changing data on Hotel Map page
 
     this->setBooking(*booking);
     ui->tableWidget_2->blockSignals(true);
-        ui->tableWidget->blockSignals(true);
+    ui->tableWidget->blockSignals(true);
     LoadBooking();
 
-        ui->tableWidget_2->blockSignals(false);
-        ui->tableWidget->blockSignals(false );
+    ui->tableWidget_2->blockSignals(false);
+    ui->tableWidget->blockSignals(false );
 }
 
 void MainWindow::OnTableItemEditable(QTableWidgetItem *item)
@@ -361,11 +413,12 @@ void MainWindow::OnSavedChanges()
                     QMessageBox::warning(this,"Create booking- failure","Failed to create booking");
                     // Create - Failure
                 }
-                //Not exists
+                //Exists
             }
             else
             {
-                //Exists
+                QMessageBox::warning(this,"Create booking- failure","Failed to create booking --- SUCH BOOKING ALREADY EXISTS");
+                //Non Exists
             }
             break;
         case QMessageBox::No:
@@ -384,8 +437,14 @@ void MainWindow::OnSavedChanges()
             switch(reply)
             {
             case QMessageBox::Yes:
-                QMessageBox::information(this,"Save change - success","Booking has been updated.");
-                getBooking()->setIsModified(false);
+                if(!DBUpdateBooking())
+                {
+                    QMessageBox::warning(this,"Save change - failure","Failed to update current booking.");
+                }else
+                {
+                    QMessageBox::information(this,"Save change - success","Booking has been updated.");
+                    getBooking()->setIsModified(false);
+                }
                 break;
             case QMessageBox::No:
             default:
@@ -671,6 +730,7 @@ void MainWindow::OnCustomerInfoRequested()
                         .arg(phone)
                         .arg(email)
                         .arg(bookingNum);
+
 
     qDebug() << "Searching Customer: Sending request" << Query;
 
@@ -1059,13 +1119,18 @@ bool MainWindow::DBExistsBooking()
 bool MainWindow::DBCreateNewBooking()
 {
     auto booking = getBooking();
-    // Step 3: Proceed with creation
+    int bookingId = -1;
+
+// BOOKING
+
+
     QSqlQuery insert;
     insert.prepare(R"(
         INSERT INTO Booking (booking_number, created_date, checkin_date, checkout_date, room_number,
                              booker_name, booker_email, booker_phonenumber, notes)
         VALUES (:bookingNumber, :created, :checkin, :checkout, :room,
                 :name, :email, :phone, :notes)
+        RETURNING booking_id
     )");
     insert.bindValue(":bookingNumber", booking->getBookingNumber());
     insert.bindValue(":created", booking->getCreatedDate());
@@ -1081,13 +1146,171 @@ bool MainWindow::DBCreateNewBooking()
         qDebug() << "Insert failed:" << insert.lastError();
         return false;
     }
+    if (insert.next()) {
+        bookingId = insert.value(0).toInt();
+    } else {
+        qDebug() << "Failed to retrieve booking ID.";
+        return false;
+    }
+
+// BOOKING CUSTOMER
+
+    for (auto& customer : booking->getCustomers()) {
+        QSqlQuery customerInsert;
+        customerInsert.prepare(R"(
+        INSERT INTO Booking_Customer (booking_id, name, email, phonenumber, document_type,
+                              document_number, age, dob, checked_in)
+        VALUES (:bookingId, :name, :email, :phone, :docType,
+                :docNum, :age, :dob, :checkedIn)
+        )");
+        customerInsert.bindValue(":bookingId", bookingId);
+        customerInsert.bindValue(":name", customer.getName());
+        customerInsert.bindValue(":email", customer.getEmail());
+        customerInsert.bindValue(":phone", customer.getPhonenumber());
+        customerInsert.bindValue(":docType", customer.getDocumentType());
+        customerInsert.bindValue(":docNum", customer.getDocumentNumber());
+        customerInsert.bindValue(":age", customer.getAge());
+        customerInsert.bindValue(":dob", customer.getDob());
+        customerInsert.bindValue(":checkedIn", customer.getCheckedIn());
+
+        if (!customerInsert.exec()) {
+            qDebug() << "Failed to insert customer:" << customerInsert.lastError();
+            return false;
+        }
+    }
+
+// PAYMENT
+    for (auto& payment : booking->getPayments()) {
+        QSqlQuery paymentInsert;
+        paymentInsert.prepare(R"(
+        INSERT INTO Payment (booking_id, amount, currency, method)
+        VALUES (:bookingId, :amount, :currency, :method)
+    )");
+        paymentInsert.bindValue(":bookingId", bookingId);
+        paymentInsert.bindValue(":amount", payment.getAmount());
+        paymentInsert.bindValue(":currency", payment.getCurrency());
+        paymentInsert.bindValue(":method", payment.getMethod());
+
+        if (!paymentInsert.exec()) {
+            qDebug() << "Failed to insert payment:" << paymentInsert.lastError();
+            return false;
+        }
+    }
+
     return true;
 }
 bool MainWindow::DBUpdateBooking()
 {
+    auto booking = getBooking();
+
+    // First, get the booking ID from booking_number
+    QSqlQuery getIdQuery;
+    getIdQuery.prepare("SELECT booking_id FROM Booking WHERE booking_number = :bookingNumber");
+    getIdQuery.bindValue(":bookingNumber", booking->getBookingNumber());
+
+    int bookingId = -1;
+    if (getIdQuery.exec() && getIdQuery.next()) {
+        bookingId = getIdQuery.value(0).toInt();
+    } else {
+        qDebug() << "Failed to find booking ID for update:" << getIdQuery.lastError();
+        return false;
+    }
+
+    // 1. Update Booking table
+    QSqlQuery update;
+    update.prepare(R"(
+        UPDATE Booking SET
+            created_date = :created,
+            checkin_date = :checkin,
+            checkout_date = :checkout,
+            room_number = :room,
+            booker_name = :name,
+            booker_email = :email,
+            booker_phonenumber = :phone,
+            notes = :notes
+        WHERE booking_id = :bookingId
+    )");
+
+    update.bindValue(":created", booking->getCreatedDate());
+    update.bindValue(":checkin", booking->getCheckedinDate());
+    update.bindValue(":checkout", booking->getCheckoutDate());
+    update.bindValue(":room", booking->getRoomNumber());
+    update.bindValue(":name", booking->getBookerName());
+    update.bindValue(":email", booking->getBookerEmail());
+    update.bindValue(":phone", booking->getBookerPhonenumber());
+    update.bindValue(":notes", booking->getNotes());
+    update.bindValue(":bookingId", bookingId);
+
+    if (!update.exec()) {
+        qDebug() << "Failed to update booking:" << update.lastError();
+        return false;
+    }
+
+    // 2. Delete previous customers
+    QSqlQuery deleteCustomers;
+    deleteCustomers.prepare("DELETE FROM Booking_Customer WHERE booking_id = :bookingId");
+    deleteCustomers.bindValue(":bookingId", bookingId);
+    if (!deleteCustomers.exec()) {
+        qDebug() << "Failed to delete old customers:" << deleteCustomers.lastError();
+        return false;
+    }
+
+    // 3. Re-insert updated customers
+    for (auto& customer : booking->getCustomers()) {
+        QSqlQuery customerInsert;
+        customerInsert.prepare(R"(
+            INSERT INTO Booking_Customer (booking_id, name, email, phonenumber, document_type,
+                                          document_number, age, dob, checked_in)
+            VALUES (:bookingId, :name, :email, :phone, :docType, :docNum, :age, :dob, :checkedIn)
+        )");
+
+        customerInsert.bindValue(":bookingId", bookingId);
+        customerInsert.bindValue(":name", customer.getName());
+        customerInsert.bindValue(":email", customer.getEmail());
+        customerInsert.bindValue(":phone", customer.getPhonenumber());
+        customerInsert.bindValue(":docType", customer.getDocumentType());
+        customerInsert.bindValue(":docNum", customer.getDocumentNumber());
+        customerInsert.bindValue(":age", customer.getAge());
+        customerInsert.bindValue(":dob", customer.getDob());
+        customerInsert.bindValue(":checkedIn", customer.getCheckedIn());
+
+        if (!customerInsert.exec()) {
+            qDebug() << "Failed to insert updated customer:" << customerInsert.lastError();
+            return false;
+        }
+    }
+
+    // 4. Delete previous payments
+    QSqlQuery deletePayments;
+    deletePayments.prepare("DELETE FROM Payment WHERE booking_id = :bookingId");
+    deletePayments.bindValue(":bookingId", bookingId);
+    if (!deletePayments.exec()) {
+        qDebug() << "Failed to delete old payments:" << deletePayments.lastError();
+        return false;
+    }
+
+    // 5. Re-insert updated payments
+    for (auto& payment : booking->getPayments()) {
+        QSqlQuery paymentInsert;
+        paymentInsert.prepare(R"(
+            INSERT INTO Payment (booking_id, amount, currency, method)
+            VALUES (:bookingId, :amount, :currency, :method)
+        )");
+
+        paymentInsert.bindValue(":bookingId", bookingId);
+        paymentInsert.bindValue(":amount", payment.getAmount());
+        paymentInsert.bindValue(":currency", payment.getCurrency());
+        paymentInsert.bindValue(":method", payment.getMethod());
+
+        if (!paymentInsert.exec()) {
+            qDebug() << "Failed to insert updated payment:" << paymentInsert.lastError();
+            return false;
+        }
+    }
 
     return true;
 }
+
 bool MainWindow::DBClearBooking()
 {
 
@@ -1099,6 +1322,16 @@ bool MainWindow::DBRemoveBooking()
     return true;
 }
 
+bool MainWindow::DBCreateEmployee()
+{
+
+}
+
+bool MainWindow::DBRemoveEmployee()
+{
+
+}
+
 void MainWindow::OnEmployeeCreated()
 {
     qDebug() << "OnEmployeeCreated";
@@ -1106,7 +1339,14 @@ void MainWindow::OnEmployeeCreated()
     int count = EmployeeTable->rowCount();
 
 
-    Employee employee;
+    QString name;
+    QString role;
+    QString email;
+    QString phone_number;
+    float salary;
+    QString login = "";
+    QString password;
+
 
     auto InputValue = QInputDialog::getText(this,"Create Employee","Name of the new employee");
 
@@ -1123,27 +1363,38 @@ void MainWindow::OnEmployeeCreated()
         return;
     }
 
-    employee.setName(InputValue);
+    name = InputValue;
 
     auto employeeEmail = InputValue.trimmed().replace(" ",".").toLower() + "@mxhotel.com";
     InputValue = QInputDialog::getText(this,"Create Employee","Email of the new employee");
-    if(InputValue == "" || InputValue == " " || InputValue.contains(" ") || !InputValue.contains("@"))
+    if(InputValue.isEmpty() || InputValue == "" || InputValue == " " || InputValue.contains(" ") || !InputValue.contains("@"))
     {
-        employee.setEmail(employeeEmail);
+        email = employeeEmail;
     }else
     {
 
-        employee.setEmail(InputValue);
+        email = InputValue;
     }
 
 
-    employee.setLogin(InputValue);
+    QSqlQuery IDQuery;
+    IDQuery.prepare(R"(
+    SELECT COUNT(*) from Employee;
+)");
+    if(IDQuery.exec())
+    {
+        if(IDQuery.next())
+        {
+         login = IDQuery.value(0).toString();
+        }
+    }
+    if(login == "")
+    {
+        login = QString::number(QRandomGenerator::global()->bounded(0,9999));
+    }
+    qDebug() << "LOGIN IS "<<login;
     InputValue.clear();
 
-    int ID = GetNewEmployeeID();
-    InputValue = "mx_"+QString::number(ID);
-    employee.setLogin(InputValue);
-    InputValue.clear();
 
     InputValue = QInputDialog::getText(this,"Create Employee","Password of the new employee");
     if(InputValue == "" || InputValue == " ")
@@ -1157,7 +1408,7 @@ void MainWindow::OnEmployeeCreated()
         }
         InputValue = randomPassword;
     }
-    employee.setPassword(InputValue);
+    password = (InputValue);
     InputValue.clear();
 
     InputValue = QInputDialog::getText(this,"Create Employee","Phone number of the new employee");
@@ -1166,7 +1417,7 @@ void MainWindow::OnEmployeeCreated()
     {
         InputValue = "0";
     }
-    employee.setPhoneNumber(InputValue);
+    phone_number = (InputValue);
     InputValue.clear();
 
     InputValue = QInputDialog::getText(this,"Create Employee","Role of the new employee");
@@ -1176,7 +1427,7 @@ void MainWindow::OnEmployeeCreated()
 
         InputValue = "None";
     }
-    employee.setRole(InputValue);
+    role = (InputValue);
     InputValue.clear();
 
     InputValue = QInputDialog::getText(this,"Create Employee","Salary of the new employee");
@@ -1185,39 +1436,97 @@ void MainWindow::OnEmployeeCreated()
     {
         InputValue = "0.0";
     }
-    employee.setSalary(InputValue.remove(',').toFloat());
+    salary = (InputValue.remove(',').toFloat());
     InputValue.clear();
 
+    QSqlQuery EmployeeExistsQuery;
+    EmployeeExistsQuery.prepare(R"(
+    SELECT COUNT(*) FROM Employee
+    WHERE name = :name
+    AND role = :role
+    AND email = :email
+    AND phone_number = :phone_number
+    )");
+    EmployeeExistsQuery.bindValue(":name",name);
+    EmployeeExistsQuery.bindValue(":role",role);
+    EmployeeExistsQuery.bindValue(":email",email);
+    EmployeeExistsQuery.bindValue(":phone_number",phone_number);
+    EmployeeExistsQuery.bindValue(":salary",salary);
+    EmployeeExistsQuery.bindValue(":login",login);
+    EmployeeExistsQuery.bindValue(":password",password);
 
-    if(employees.contains(employee))
+    if(EmployeeExistsQuery.exec())
     {
-        QMessageBox::warning(this,"Create Employee","Such employee already exists");
-        return;
-    }
-    employees.push_back(employee);
-
-    EmployeeTable->insertRow(count);
-    qDebug() << "rows: "<<EmployeeTable->rowCount() << " columns: " << EmployeeTable->columnCount();
-    int columnNum = EmployeeTable->columnCount();
-    EmployeeTable->blockSignals(true);
-    for(int i = 0 ; i < columnNum; ++i)
-    {
-        QTableWidgetItem* item = new QTableWidgetItem("Text");
-
-        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-       EmployeeTable->setItem(EmployeeTable->rowCount()-1,i,item);
-        auto Widget = EmployeeTable->item(EmployeeTable->rowCount()-1,i);
-        if(Widget)
+        if(EmployeeExistsQuery.value(0).toInt() > 0)
         {
-            Widget->setBackground(QColor(0x545454));
+            QMessageBox::warning(this,"Create Employee", name + " employee already exists");
+            return;
         }
         else
         {
-            qDebug() << "Reading nullptr;";
+            QSqlQuery CreateEmployeeQuery;
+            CreateEmployeeQuery.prepare(R"(
+            INSERT INTO Employee (name,role,email,phone_number,salary,login,password)
+            VALUES (:name,:role,:email,:phone_number,:salary,:login,:password)
+)");
+            CreateEmployeeQuery.bindValue(":name",name);
+            CreateEmployeeQuery.bindValue(":role",role);
+            CreateEmployeeQuery.bindValue(":email",email);
+            CreateEmployeeQuery.bindValue(":phone_number",phone_number);
+            CreateEmployeeQuery.bindValue(":salary",salary);
+            CreateEmployeeQuery.bindValue(":login",login);
+            CreateEmployeeQuery.bindValue(":password",password);
+
+            if(CreateEmployeeQuery.exec())
+            {
+                QMessageBox::information(this,"CREATE EMPLOYEE","Successfully created an employee: "+name);
+            }else
+            {
+                QMessageBox::warning(this,"CREATE EMPLOYEE","Failed to create the employee: "+CreateEmployeeQuery.lastError().text());
+            }
+        }
+
+        Employee employee;
+        employee.setName(name);
+        employee.setEmail(email);
+        employee.setLogin(login);
+        employee.setPassword(password);
+        employee.setPhoneNumber(phone_number);
+        employee.setRole(role);
+        employee.setSalary(salary);
+
+        EmployeeTable->setRowCount(0);
+        EmployeeTable->clearContents();
+
+        employees.push_back(employee);
+
+
+    }
+
+    EmployeeTable->blockSignals(true);
+    int columnNum = EmployeeTable->columnCount();
+
+    for(int j = 0; j < employees.size(); ++j)
+    {
+        EmployeeTable->insertRow(EmployeeTable->rowCount());
+        for(int i = 0 ; i < columnNum; ++i)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem("Text");
+
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            EmployeeTable->setItem(j,i,item);
+            auto Widget = EmployeeTable->item(j,i);
+            if(Widget)
+            {
+                Widget->setBackground(QColor(0x545454));
+            }
+            else
+            {
+                qDebug() << "Reading nullptr;";
+            }
         }
     }
     EmployeeTable->blockSignals(false);
-    QMessageBox::information(this,"Employee Created","Congratulations. Created an employee.");
     LoadEmployees();
     qDebug() << "Loaded employees";
    // EmployeeTable->resizeColumnsToContents();
@@ -1350,6 +1659,7 @@ void MainWindow::OnSearchEmployee()
     bool ValidName = true;
     bool ValidSurname = true;
     bool ValidPhone = true;
+
     if(!regex.match(ui->lineEdit_6->text()).hasMatch())// first name
     {
         ValidName = false;
@@ -1361,11 +1671,17 @@ void MainWindow::OnSearchEmployee()
         ValidSurname = false;
     }
 
-    regex = QRegularExpression("^[0-9 ]+$");
+    QString phone;
+    regex = QRegularExpression("^\\+?[0-9 ]+$");
     if(!regex.match(ui->lineEdit_8->text()).hasMatch())// first name
     {
         ValidPhone = false;
        // QMessageBox::warning(this,"Search Employee","Invalid phone number");
+    }
+
+    if(ValidPhone)
+    {
+        phone = ui->lineEdit_8->text();
     }
 
     QString employeeName = "";
@@ -1384,73 +1700,111 @@ void MainWindow::OnSearchEmployee()
         }
     }
     dataQuery = employeeName + " " + ui->lineEdit_8->text();
-    qDebug() << "Sent data:  " << dataQuery;
+
+    QSqlQuery query;
+    if (!employeeName.isEmpty() && !phone.isEmpty())
+    {
+        query.prepare(R"(
+        SELECT * FROM Employee
+        WHERE name ILIKE :name AND phone_number = :phone
+    )");
+        query.bindValue(":name", employeeName + "%");
+        query.bindValue(":phone", phone);
+    }
+    else if (!employeeName.isEmpty())
+    {
+        query.prepare(R"(
+        SELECT * FROM Employee
+        WHERE name ILIKE :name
+    )");
+        query.bindValue(":name", employeeName + "%");
+    }
+    else if (!phone.isEmpty())
+    {
+        query.prepare(R"(
+        SELECT * FROM Employee
+        WHERE phone_number = :phone
+    )");
+        query.bindValue(":phone", phone);
+    }
+    else
+    {
+        qDebug() << phone;
+        qDebug() << ui->lineEdit_8->text();
+        QMessageBox::warning(this, "Search Employee", "Please enter at least name or phone number to search.");
+        return;
+    }
 
     bool foundEmployee = false;
-    Employee employee;
-    if(employeeName != "") // name
+    if (query.exec())
     {
-        auto employeePtr = GetEmployeeByName(employeeName);
-        if(employeePtr)
+        employees.clear();
+        ui->tableWidget_3->clearContents();
+        ui->tableWidget_3->setRowCount(0);
+
+        while(query.next())
         {
-            qDebug() << "GetEmployeeByName found";
-            employeePtr->Print();
-            employee = *employeePtr;
+
             foundEmployee = true;
-        }else
-        {
+            Employee employee;
+            // Employee found
+            QString foundName = query.value("name").toString();
+            QString foundRole = query.value("role").toString();
+            QString foundEmail = query.value("email").toString();
+            QString foundPhone = query.value("phone_number").toString();
+            float foundSalary = query.value("salary").toFloat();
+            QString login = query.value("login").toString();
+            QString password = query.value("password").toString();
+            employee.setName(foundName);
+            employee.setRole(foundRole);
+            employee.setEmail(foundEmail);
+            employee.setPhoneNumber(foundPhone);
+            employee.setSalary(foundSalary);
+            employee.setLogin(login);
+            employee.setPassword(password);
+
+            employees.push_back(employee);
+            ui->tableWidget_3->insertRow(ui->tableWidget_3->rowCount());
 
         }
-    }else
-    {
-        if(ui->lineEdit_8->text() != "") // phone number
-        {
+    } else {
+        QMessageBox::warning(this, "Search Employee", "Failed to search: " + query.lastError().text());
+    }
 
-            for (auto& object : employees)
+    qDebug() << "=====================";
+
+    qDebug() << "=====================";
+
+    if(!foundEmployee)
+    {
+        QMessageBox::warning(this,"Find employee","Found no employee.");
+        return;
+    }
+    ui->tableWidget_3->blockSignals(true);
+
+
+    for(int j = 0; j < employees.size(); ++j)
+    {
+
+        for(int i = 0 ; i < ui->tableWidget_3->columnCount(); ++i)
+        {
+            QTableWidgetItem* item = new QTableWidgetItem(" ");
+
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            ui->tableWidget_3->setItem(j,i,item);
+            auto Widget = ui->tableWidget_3->item(j,i);
+            if(Widget)
             {
-                if(object.getPhoneNumber() == employeeName)
-                {
-                    object.Print();
-                    employee = object;
-                    foundEmployee = true;
-                    break;
-                }
+                Widget->setBackground(QColor(0x545454));
+            }
+            else
+            {
+                qDebug() << "Reading nullptr;";
             }
         }
     }
 
-    if(!foundEmployee)
-    {
-        QMessageBox::warning(this,"Search Employee", "Could not find "+employeeName);
-        return;
-    }
-    qDebug() << "=====================";
-
-    qDebug() << "=====================";
-    employees.clear();
-    ui->tableWidget_3->clearContents();
-    ui->tableWidget_3->setRowCount(0);
-    ui->tableWidget_3->insertRow(ui->tableWidget_3->rowCount());
-
-    ui->tableWidget_3->blockSignals(true);
-    for(int i = 0 ; i < ui->tableWidget_3->columnCount(); ++i)
-    {
-        QTableWidgetItem* item = new QTableWidgetItem(" ");
-
-        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-        ui->tableWidget_3->setItem(ui->tableWidget_3->rowCount()-1,i,item);
-        auto Widget = ui->tableWidget_3->item(ui->tableWidget_3->rowCount()-1,i);
-        if(Widget)
-        {
-            Widget->setBackground(QColor(0x545454));
-        }
-        else
-        {
-            qDebug() << "Reading nullptr;";
-        }
-    }
     ui->tableWidget_3->blockSignals(false);
-    employees.push_back(employee);
     LoadEmployees();
 
 };
