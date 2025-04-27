@@ -87,3 +87,12 @@ Employee::Employee(const QString &name, const QString &role) : name(name),
     role(role),
     email(name.toLower().replace(" ",".")+"@mxhotel.com")
 {}
+
+Employee::Employee(const QString &name, const QString &role, const QString &email, const QString &phoneNumber, float salary, const QString &login, const QString &password) : name(name),
+    role(role),
+    email(email),
+    phoneNumber(phoneNumber),
+    salary(salary),
+    login(login),
+    password(password)
+{}

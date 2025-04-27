@@ -33,9 +33,12 @@ public:
 
     //Employees Page
     void SetEmployeesPage();
+
+    void ResetAndGetEmployees();
     void LoadEmployees();
+
     int GetNewEmployeeID();
-    void AddEmployee(Employee* employee);
+    void AddEmployee(Employee* employee, bool showMessage = false);
     Employee* GetEmployeeByName(QString Name);
 
 

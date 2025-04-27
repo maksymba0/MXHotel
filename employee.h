@@ -27,6 +27,7 @@ public:
         return *this;
     }
     Employee(const QString &name, const QString &role);
+    Employee(const QString &name, const QString &role, const QString &email, const QString &phoneNumber, float salary, const QString &login, const QString &password);
     QString getName() const;
     void setName(const QString &newName);
 

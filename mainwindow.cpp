@@ -21,17 +21,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-    // Set up the pages
-    SetBookingPage();
-    SetHotelMapPage();
-    SetEmployeesPage();
-    SetCustomersPage();
-    setPartnersPage();
-    SetNotificationsPage();
-    SetRequestsPage();
-    SetSettingsPage();
-
-    UpdateTheme((int)Themes::DEFAULT);
 
 
     QSqlDatabase db = QSqlDatabase::addDatabase("QPSQL");
@@ -48,6 +37,20 @@ MainWindow::MainWindow(QWidget *parent)
     {
         QMessageBox::warning(this,"Database connection","Failed to connect to the database");
     }
+    // Set up the pages
+    SetBookingPage();
+    SetHotelMapPage();
+    SetEmployeesPage();
+    SetCustomersPage();
+    setPartnersPage();
+    SetNotificationsPage();
+    SetRequestsPage();
+    SetSettingsPage();
+
+    UpdateTheme((int)Themes::DEFAULT);
+
+
+
 
 
 }
@@ -1543,6 +1546,64 @@ void MainWindow::OnEmployeeUpdated()
         {
             EmployeeModified = false;
             QMessageBox::information(this,"Save changes - EMPLOYEE","Saved changes.");
+            for(auto& employee : employees)
+            {
+                if(!employee.getIsModified())
+                {
+                    continue;
+                }
+
+                QSqlQuery EmployeeID;
+                EmployeeID.prepare(R"(
+                SELECT id FROM Employee
+                WHERE email = :email
+                )");
+                EmployeeID.bindValue(":email",employee.getEmail());
+                int employeeID = -1;
+                if(EmployeeID.exec())
+                {
+                    if(EmployeeID.next())
+                    {
+                        employeeID = EmployeeID.value("id").toInt();
+                    }
+                }
+                if(employeeID == -1)
+                {
+                    QMessageBox::warning(this,"Update Employee","Failed to find the employee: "+EmployeeID.lastError().text());
+                    return;
+                }
+                QSqlQuery EmployeeUpdate;
+                EmployeeUpdate.prepare(R"(
+                UPDATE Employee SET
+                name = :name,
+                role = :role,
+                email = :email,
+                phone_number = :phone_number,
+                salary = :salary,
+                login = :login,
+                password = :password
+                WHERE
+                    id = :id
+                )");
+                EmployeeUpdate.bindValue(":name", employee.getName());
+                EmployeeUpdate.bindValue(":role", employee.getRole());
+                EmployeeUpdate.bindValue(":email", employee.getEmail());
+                EmployeeUpdate.bindValue(":phone_number", employee.getPhoneNumber());
+                EmployeeUpdate.bindValue(":salary", employee.getSalary());
+                EmployeeUpdate.bindValue(":login", employee.getLogin());
+                EmployeeUpdate.bindValue(":password", employee.getPassword());
+                EmployeeUpdate.bindValue(":id", employeeID);
+                if (!EmployeeUpdate.exec())
+                {
+                    QMessageBox::warning(this, "Employee Update Failed",
+                                         "Failed to update employee: " + EmployeeUpdate.lastError().text());
+                }
+                else
+                {
+                    // Optional: you can reset IsModified flag here
+                    employee.setIsModified(false);
+                }
+            }
         }
     }
     else
@@ -1584,12 +1645,43 @@ void MainWindow::OnEmployeeRemoved()
             {
                 bool IsSuccess  = false;
 
-                // for each selected row
-                employees.removeOne(*employee);
-                if(IsSuccess)
+                int ID = -1;
+                QSqlQuery IDQuery;
+                IDQuery.prepare(R"(
+                SELECT id from Employee
+                WHERE email = :email
+        )");
+                IDQuery.bindValue(":email",employee->getEmail());
+                if(IDQuery.exec())
+                {
+                    if(IDQuery.next())
+                    {
+                        ID = IDQuery.value("id").toInt();
+                    }
+                }
+                if(ID == -1)
+                {
+                    QMessageBox::warning(this,"Remove Employee","Failed to find the employee");
+                    return;
+                }
+                QSqlQuery DeleteEmployee;
+                DeleteEmployee.prepare(R"(
+                DELETE FROM Employee
+                WHERE id = :id)");
+                DeleteEmployee.bindValue(":id",ID);
+                if (DeleteEmployee.exec()) {
+                    qDebug() << "Employee with ID" << ID << "deleted successfully.";
+                    employees.removeOne(*employee);
                     QMessageBox::information(this,"REMOVE SUCCESS",employee->getName() + " has been removed!");
-                EmployeeModified = true;
-                EmployeeTable->removeRow(RowMax-1);
+                    delete employee;
+                    EmployeeModified = true;
+                    EmployeeTable->removeRow(RowMax-1);
+                } else {
+                    qDebug() << "Failed to delete employee:" << DeleteEmployee.lastError().text();
+                }
+
+
+
             }else
             {
                 QMessageBox::warning(this,"Remove Customer","Error while removing the last employee from the employee table");
@@ -1624,13 +1716,40 @@ void MainWindow::OnEmployeeRemoved()
         }
         IsSuccess  = true;
         // for each selected row
-        EmployeeTable->removeRow(Row);
-        employees.removeOne(*employee);
-        if(IsSuccess)
-        {
 
-            QMessageBox::information(this,"REMOVE SUCCESS",name + " has been removed!");
+        int ID = -1;
+        QSqlQuery IDQuery;
+        IDQuery.prepare(R"(
+                SELECT id from Employee
+                WHERE email = :email
+        )");
+        IDQuery.bindValue(":email",employee->getEmail());
+        if(IDQuery.exec())
+        {
+            if(IDQuery.next())
+            {
+                ID = IDQuery.value("id").toInt();
+            }
+        }
+        if(ID == -1)
+        {
+            QMessageBox::warning(this,"Remove Employee","Failed to find the employee");
+            return;
+        }
+        QSqlQuery DeleteEmployee;
+        DeleteEmployee.prepare(R"(
+                DELETE FROM Employee
+                WHERE id = :id)");
+        DeleteEmployee.bindValue(":id",ID);
+        if (DeleteEmployee.exec()) {
+            qDebug() << "Employee with ID" << ID << "deleted successfully.";
+
+            QMessageBox::information(this,"REMOVE SUCCESS",employee->getName() + " has been removed!");
+             employees.removeOne(*employee);
             EmployeeModified = true;
+            EmployeeTable->removeRow(Row);
+        } else {
+            qDebug() << "Failed to delete employee:" << DeleteEmployee.lastError().text();
         }
     }
     if(EmployeeTable->rowCount() == 0)
@@ -1647,9 +1766,7 @@ void MainWindow::OnEmployeeCleared()
     ui->lineEdit_7->clear();
     ui->lineEdit_8->clear();
 
-    employees.clear();
-    ui->tableWidget_3->clearContents();
-    ui->tableWidget_3->setRowCount(0);
+    ResetAndGetEmployees();
 }
 
 void MainWindow::OnSearchEmployee()
@@ -2012,24 +2129,7 @@ void MainWindow::SetEmployeesPage(){
 
     connect(ui->pushButton_33,&QPushButton::clicked,this,&MainWindow::OnSearchEmployee);
 
-    Employee max;
-    max.setName("Max Test");
-    max.setEmail("max.Test@mxhotel.com");
-    max.setLogin("adminmax");
-    max.setPassword("adminpassword");
-    max.setPhoneNumber("+48 929 858 999");
-    max.setSalary(2500);
-
-    this->AddEmployee(&max);
-    Employee daniel;
-
-    daniel.setName("Daniel Ricardo");
-    daniel.setEmail("ricardo.daniel@mxhotel.com");
-    daniel.setLogin("tairdanieldanya");
-    daniel.setPassword("testgabesoftware");
-    daniel.setPhoneNumber("+48 888 582 020");
-    daniel.setSalary(505);
-    this->AddEmployee(&daniel);
+    ResetAndGetEmployees();
 
 
 
@@ -2037,6 +2137,57 @@ void MainWindow::SetEmployeesPage(){
 
     //Remove
 
+}
+
+void MainWindow::ResetAndGetEmployees()
+{
+
+    // Check if we have same amount of employees as in db
+
+    QSqlQuery EmployeeCount;
+    EmployeeCount.prepare(R"(
+    SELECT COUNT(*) from Employee;)");
+    if(EmployeeCount.exec())
+    {
+        if(EmployeeCount.next())
+        {
+            qDebug() << "Comparing " << EmployeeCount.value(0).toInt() << " to employees size " << employees.size();
+            if(EmployeeCount.value(0).toInt() == employees.size())
+            {
+                QMessageBox::warning(this,"ResetAndGetEmployees","No need to reset the Employee Table");
+                return;
+            }
+        }
+    }
+    employees.clear();
+    ui->tableWidget_3->clearContents();
+    ui->tableWidget_3->setRowCount(0);
+    QSqlQuery EmployeesQuery;
+    EmployeesQuery.prepare(R"(
+    SELECT * from Employee;
+)");
+    if(EmployeesQuery.exec())
+    {
+        while(EmployeesQuery.next())
+        {
+            QString name = EmployeesQuery.value("name").toString();
+            QString role = EmployeesQuery.value("role").toString();
+            QString email = EmployeesQuery.value("email").toString();
+            QString phone_number = EmployeesQuery.value("phone_number").toString();
+            float salary = EmployeesQuery.value("salary").toFloat();
+            QString login = EmployeesQuery.value("login").toString();
+            QString password = EmployeesQuery.value("password").toString();
+
+            Employee employee(name,role,email,phone_number,salary,login,password);
+
+            AddEmployee(&employee);
+
+        }
+    }else
+    {
+        QMessageBox::warning(this,"GetAllEmployees - failed","Failed to get all employees:"+EmployeesQuery.lastError().text());
+    }
+    LoadEmployees();
 }
 
 void MainWindow::LoadEmployees()
@@ -2098,7 +2249,7 @@ int MainWindow::GetNewEmployeeID()
     return QRandomGenerator::global()->bounded(0,100);
 }
 
-void MainWindow::AddEmployee(Employee* employee)
+void MainWindow::AddEmployee(Employee* employee, bool showMessage)
 {
     qDebug() << "Creating employee internally";
     if(!employee)
@@ -2171,7 +2322,10 @@ void MainWindow::AddEmployee(Employee* employee)
         }
     }
     EmployeeTable->blockSignals(false);
-    QMessageBox::information(this,"Employee Created","Congratulations. Created an employee.");
+    if(showMessage)
+    {
+        QMessageBox::information(this,"Employee Created","Congratulations. Created an employee.");
+    }
     LoadEmployees();
     qDebug() << "Loaded employee";
 }
