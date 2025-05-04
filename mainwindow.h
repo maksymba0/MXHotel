@@ -78,6 +78,8 @@ public:
     bool DBCreateEmployee();
     bool DBRemoveEmployee();
 
+    bool DBUpdateCustomer();
+
 
 private slots:
 

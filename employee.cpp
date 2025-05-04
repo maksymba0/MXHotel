@@ -9,6 +9,7 @@ QString Employee::getName() const
 
 void Employee::setName(const QString &newName)
 {
+    oldName = name;
     name = newName;
 }
 
@@ -29,7 +30,9 @@ QString Employee::getEmail() const
 
 void Employee::setEmail(const QString &newEmail)
 {
+    oldEmail = email;
     email = newEmail;
+
 }
 
 QString Employee::getPhoneNumber() const
@@ -80,6 +83,26 @@ bool Employee::getIsModified() const
 void Employee::setIsModified(bool newIsModified)
 {
     IsModified = newIsModified;
+}
+
+QString Employee::getOldEmail() const
+{
+    return oldEmail;
+}
+
+void Employee::setOldEmail(const QString &newOldEmail)
+{
+    oldEmail = newOldEmail;
+}
+
+QString Employee::getOldName() const
+{
+    return oldName;
+}
+
+void Employee::setOldName(const QString &newOldName)
+{
+    oldName = newOldName;
 }
 
 

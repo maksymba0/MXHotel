@@ -80,3 +80,13 @@ void UCustomer::setInformation(const QString &newInformation)
 {
     Information = newInformation;
 }
+
+bool UCustomer::getIsModified() const
+{
+    return isModified;
+}
+
+void UCustomer::setIsModified(bool newIsModified)
+{
+    isModified = newIsModified;
+}

@@ -33,6 +33,9 @@ public:
     QString getInformation() const;
     void setInformation(const QString &newInformation);
 
+    bool getIsModified() const;
+    void setIsModified(bool newIsModified);
+
 private:
 
     int ID;
@@ -42,6 +45,8 @@ private:
     QString Phonenumber;
     QString Email;
     QString Information;
+
+    bool isModified;
 
 };
 

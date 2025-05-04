@@ -121,6 +121,7 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
                 ui->tableWidget->setRowCount(0);
                 ui->tableWidget_2->clearContents();
                 ui->tableWidget_2->setRowCount(0);
+                OnNewBooking();
             }else
             {
                 //No
@@ -208,7 +209,8 @@ void MainWindow::OnTableItemEditable(QTableWidgetItem *item)
     QTableWidget* TableWidget = nullptr;
     if(ui->tableWidget == item->tableWidget() || // customers
         (ui->tableWidget_2 == item->tableWidget()) || // payment
-        (ui->tableWidget_3 == item->tableWidget())) // employees
+        (ui->tableWidget_3 == item->tableWidget()) || // employees
+        (ui->tableWidget_4 == item->tableWidget())) // unique customer
     {
         TableWidget = item->tableWidget();
     }
@@ -374,6 +376,54 @@ void MainWindow::OnTableItemChanged(QTableWidgetItem* item)
             EmployeeModified = true;
             employee->setIsModified(true);
             employee->Print();
+
+        }
+
+    }else if(item->tableWidget() == ui->tableWidget_4) // CUSTOMER TABLE
+    {
+        auto CustomerTable = ui->tableWidget_4;
+        if(uCustomers.empty() || row > uCustomers.size())
+        {
+            qDebug() << "Outside of index boundary";
+            return;
+        }
+        UCustomer* customer = &uCustomers[row];
+        if(customer)
+        {
+            switch(item->column())
+            {
+            case 0:
+                customer->setID(CustomerTable->item(row,0)->text().toInt());
+                break; // name
+            case 1:
+
+                customer->setBookingNumber(CustomerTable->item(row,1)->text());
+
+                break; // role
+            case 2:
+
+                customer->setName(CustomerTable->item(row,2)->text());
+                break; // email
+            case 3:
+
+                customer->setLastRoom(CustomerTable->item(row,3)->text().toInt());
+                break; // phone number
+            case 4:
+
+                customer->setPhonenumber(CustomerTable->item(row,4)->text());
+                break; //salary
+            case 5:
+
+                customer->setEmail(CustomerTable->item(row,5)->text());
+                break;// login
+            case 6:
+                customer->setInformation(CustomerTable->item(row,6)->text());
+                break; // password
+            default:
+                return;
+            }
+            customer->setIsModified(true);
+            this->DBUpdateCustomer();
 
         }
 
@@ -728,27 +778,70 @@ void MainWindow::OnCustomerInfoRequested()
     QString bookingNum = hasBookingNum ? ui->lineEdit_5->text() : "";
 
 
-    QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4")
-                        .arg(name)
-                        .arg(phone)
-                        .arg(email)
-                        .arg(bookingNum);
+    QSqlQuery SearchCustomerQuery;
 
 
-    qDebug() << "Searching Customer: Sending request" << Query;
+    QString Query = QString("SELECT * from Unique_Customer WHERE 1=1");
 
-    // TODO: Get info from Server and load it into the table
+    if(name != "")
+    {
+        Query += " AND name ILIKE :name";
+    }
+    if(phone!= "")
+    {
+        Query += " AND phone_number= :phone_number";
+    }
+    if(email != "")
+    {
+        Query += " AND email = :email";
+    }
+    if(bookingNum != "")
+    {
+        Query += " AND booking_number = :booking_number";
+    }
 
-    UCustomer customer;
-    customer.setID(uCustomers.size()+1);
-    customer.setEmail("test.email@gmail.com");
-    customer.setInformation("** VIP **");
-    customer.setName("Max Test");
-    customer.setPhonenumber("+123 456 789");
 
-    AddCustomer(&customer);
-    LoadCustomers();
-    qDebug() << " UCustomers has " << uCustomers.size() << " customers";
+
+    SearchCustomerQuery.prepare(Query);
+
+
+    if(name != "")
+    {
+        SearchCustomerQuery.bindValue(":name",name);
+    }
+    if(phone!= "")
+    {
+        SearchCustomerQuery.bindValue(":phone_number",phone);
+    }
+    if(email != "")
+    {
+        SearchCustomerQuery.bindValue(":email",email);
+    }
+    if(bookingNum != "")
+    {
+        SearchCustomerQuery.bindValue(":booking_number",bookingNum);
+    }
+
+    if(SearchCustomerQuery.exec())
+    {
+        while(SearchCustomerQuery.next())
+        {
+            UCustomer ucustomer;
+            ucustomer.setBookingNumber(SearchCustomerQuery.value("booking_number").toString());
+            ucustomer.setPhonenumber(SearchCustomerQuery.value("phone_number").toString());
+            ucustomer.setEmail(SearchCustomerQuery.value("email").toString());
+            ucustomer.setID(SearchCustomerQuery.value("id").toInt());
+            ucustomer.setInformation(SearchCustomerQuery.value("information").toString());
+            ucustomer.setLastRoom(SearchCustomerQuery.value("last_room").toInt());
+            ucustomer.setName(SearchCustomerQuery.value("name").toString());
+            AddCustomer(&ucustomer);
+            LoadCustomers();
+        }
+    }else
+    {
+        QMessageBox::warning(this,"Search Unique Customer - Failed","Internal failure to search customer:"+SearchCustomerQuery.lastError().text());
+    }
+
 
 }
 
@@ -804,20 +897,80 @@ void MainWindow::OnNewCustomerCreated()
         QMessageBox::warning(this,"Create customer","Failed to create a new customer: Missing name.");
         return;
     }
-    QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4")
-                        .arg(name)
-                        .arg(phone)
-                        .arg(email)
-                        .arg(bookingNum);
 
-    qDebug() << "Creating customer: Sending request" << Query;
+    QString Query = "SELECT COUNT(*) FROM Unique_Customer WHERE 1=1";
 
+    if(name!= "")
+    {
+        Query += " AND name=:name";
+    }
+    if(phone!= "")
+    {
+        Query += " AND phone_number = :phone_number";
+    }
+    if(email!= "")
+    {
+        Query += " AND email=:email";
+    }
+    if(bookingNum != "")
+    {
+        Query += " AND booking_number=:booking_number";
+    }
+
+    QSqlQuery CustomerExistsQuery;
+    CustomerExistsQuery.prepare(Query);
+    if(name!= "")
+    {
+        CustomerExistsQuery.bindValue(":name",name);
+    }
+    if(phone!= "")
+    {
+        CustomerExistsQuery.bindValue(":phone_number",phone);
+    }
+    if(email!= "")
+    {
+      CustomerExistsQuery.bindValue(":email",email);
+    }
+    if(bookingNum != "")
+    {
+        CustomerExistsQuery.bindValue(":booking_number",bookingNum);
+    }
+
+
+    if(CustomerExistsQuery.exec())
+    {
+        if (CustomerExistsQuery.next()) {
+            if (CustomerExistsQuery.value(0).toInt() > 0) {
+                QMessageBox::warning(this,"Create Unique Customer","Failed to create. Already exists");
+                return;
+            }
+        } else {
+            QMessageBox::warning(this,"Create Unique Customer","Internal db error: " + CustomerExistsQuery.lastError().text());
+            return;
+        }
+
+    } else {
+        QMessageBox::warning(this,"Create Unique Customer","Internal db error: " + CustomerExistsQuery.lastError().text());
+        return;
+    }
+
+    QSqlQuery CreateUniqueCustomer;
+    CreateUniqueCustomer.prepare(R"(INSERT INTO Unique_Customer (booking_number,name,phone_number,email)
+    VALUES (:booking_number,:name,:phone_number,:email)
+    RETURNING id
+)");
+
+
+    CreateUniqueCustomer.bindValue(":name", name);
+    CreateUniqueCustomer.bindValue(":booking_number", bookingNum);
+    CreateUniqueCustomer.bindValue(":phone_number", phone);
+    CreateUniqueCustomer.bindValue(":email", email);
     // Here we will get from the database the ID and status if creating new one, or we already have the existing user with this name and data.
     // from Booking number we will get the last room
-
-    int ID = QRandomGenerator::global()->bounded(100);
-    bool FoundInDatabase = false;
-
+    int newID = -1;
+    if (CreateUniqueCustomer.exec() && CreateUniqueCustomer.next()) {
+        newID = CreateUniqueCustomer.value(0).toInt();
+    }
 
     auto CustomerTable = ui->tableWidget_4;
     auto count = CustomerTable->rowCount();
@@ -830,9 +983,10 @@ void MainWindow::OnNewCustomerCreated()
     customer.setEmail(email);
     customer.setPhonenumber(phone);
     customer.setBookingNumber(bookingNum);
-    customer.setID(ID);
+    customer.setID(newID);
 
     uCustomers.push_back(customer);
+    CustomerTable->blockSignals(true);
     for(int i = 0 ; i < columnNum; ++i)
     {
         QTableWidgetItem* item = new QTableWidgetItem(" ");
@@ -848,7 +1002,9 @@ void MainWindow::OnNewCustomerCreated()
             qDebug() << "Reading nullptr;";
         }
     }
-    QMessageBox::about(this,"Customer Created","Please make sure to add data to the customer.");
+
+    CustomerTable->blockSignals(false);
+    QMessageBox::information(this,"Create Customer","Successfully created a customer.");
 
     LoadCustomers();
 
@@ -1335,6 +1491,50 @@ bool MainWindow::DBRemoveEmployee()
 
 }
 
+bool MainWindow::DBUpdateCustomer()
+{
+    int count = 0;
+    for(auto& customer : uCustomers)
+    {
+        if(customer.getIsModified() == false)
+        {
+            continue;
+        }
+
+        QSqlQuery update;
+        update.prepare(R"(
+        UPDATE Unique_Customer SET
+            booking_number = :booking_number,
+            name = :name,
+            last_room= :last_room,
+            phone_number= :phone_number,
+            email= :email,
+            information= :information
+        WHERE id = :id
+    )");
+
+        update.bindValue(":booking_number", customer.getBookingNumber());
+        update.bindValue(":name", customer.getName());
+        update.bindValue(":last_room", customer.getLastRoom());
+        update.bindValue(":phone_number", customer.getPhonenumber());
+        update.bindValue(":email", customer.getEmail());
+        update.bindValue(":information", customer.getInformation());
+        update.bindValue(":id", customer.getID());
+
+        if (!update.exec()) {
+            QMessageBox::warning(this,"Update UCustomer - Failed","Failed to update ucustomer:" + update.lastError().text());
+            continue;
+        }else
+        {
+            customer.setIsModified(false);
+            count++;
+        }
+
+    }
+    QMessageBox::information(this,"Update Customer  - Success"," Successfully updated " + QString::number(count) + " customers");
+    return true;
+}
+
 void MainWindow::OnEmployeeCreated()
 {
     qDebug() << "OnEmployeeCreated";
@@ -1460,13 +1660,12 @@ void MainWindow::OnEmployeeCreated()
 
     if(EmployeeExistsQuery.exec())
     {
-        if(EmployeeExistsQuery.value(0).toInt() > 0)
+        if(EmployeeExistsQuery.next() && EmployeeExistsQuery.value(0).toInt() > 0)
         {
             QMessageBox::warning(this,"Create Employee", name + " employee already exists");
             return;
         }
-        else
-        {
+
             QSqlQuery CreateEmployeeQuery;
             CreateEmployeeQuery.prepare(R"(
             INSERT INTO Employee (name,role,email,phone_number,salary,login,password)
@@ -1478,6 +1677,7 @@ void MainWindow::OnEmployeeCreated()
             CreateEmployeeQuery.bindValue(":phone_number",phone_number);
             CreateEmployeeQuery.bindValue(":salary",salary);
             CreateEmployeeQuery.bindValue(":login",login);
+            qDebug()<< "Login:" + login;
             CreateEmployeeQuery.bindValue(":password",password);
 
             if(CreateEmployeeQuery.exec())
@@ -1487,7 +1687,7 @@ void MainWindow::OnEmployeeCreated()
             {
                 QMessageBox::warning(this,"CREATE EMPLOYEE","Failed to create the employee: "+CreateEmployeeQuery.lastError().text());
             }
-        }
+
 
         Employee employee;
         employee.setName(name);
@@ -1545,7 +1745,6 @@ void MainWindow::OnEmployeeUpdated()
         }else
         {
             EmployeeModified = false;
-            QMessageBox::information(this,"Save changes - EMPLOYEE","Saved changes.");
             for(auto& employee : employees)
             {
                 if(!employee.getIsModified())
@@ -1558,7 +1757,7 @@ void MainWindow::OnEmployeeUpdated()
                 SELECT id FROM Employee
                 WHERE email = :email
                 )");
-                EmployeeID.bindValue(":email",employee.getEmail());
+                EmployeeID.bindValue(":email",employee.getOldEmail());
                 int employeeID = -1;
                 if(EmployeeID.exec())
                 {
@@ -1602,6 +1801,7 @@ void MainWindow::OnEmployeeUpdated()
                 {
                     // Optional: you can reset IsModified flag here
                     employee.setIsModified(false);
+                    QMessageBox::information(this,"Save changes - EMPLOYEE","Saved changes.");
                 }
             }
         }
@@ -2353,6 +2553,10 @@ void MainWindow::SetCustomersPage(){
     connect(ui->pushButton_31,&QPushButton::clicked,this,&MainWindow::OnNewCustomerCreated);
     connect(ui->pushButton_32,&QPushButton::clicked,this,&MainWindow::OnSelectedCustomerRemoved);
 
+    connect(ui->tableWidget_4,&QTableWidget::itemDoubleClicked,this,&MainWindow::OnTableItemEditable);
+
+    connect(ui->tableWidget_4,&QTableWidget::itemChanged,this,&MainWindow::OnTableItemChanged);
+
 
 }
 
@@ -2360,6 +2564,7 @@ void MainWindow::LoadCustomers()
 {
     this->blockSignals(true);
     auto CustomerTable = ui->tableWidget_4;
+    CustomerTable->blockSignals(true);
 
     if(uCustomers.empty())
     {
@@ -2394,15 +2599,16 @@ void MainWindow::LoadCustomers()
             CustomerTable->item(i,4)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
 
             CustomerTable->setItem(i,5,new QTableWidgetItem(customer.getEmail()));
-            CustomerTable->item(i,5)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+            CustomerTable->item(i,5)->setFlags(CustomerTable->item(i,5)->flags() & ~Qt::ItemIsEditable);
 
             CustomerTable->setItem(i,6,new QTableWidgetItem(customer.getInformation()));
-            CustomerTable->item(i,6)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+            CustomerTable->item(i,6)->setFlags(CustomerTable->item(i,6)->flags() & ~Qt::ItemIsEditable);
 
         }
     }
 
     this->blockSignals(false);
+    CustomerTable->blockSignals(false);
 }
 
 UCustomer *MainWindow::GetCustomerByID(int ID)

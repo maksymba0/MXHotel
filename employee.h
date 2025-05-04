@@ -65,10 +65,18 @@ public:
     bool getIsModified() const;
     void setIsModified(bool newIsModified);
 
+    QString getOldEmail() const;
+    void setOldEmail(const QString &newOldEmail);
+
+    QString getOldName() const;
+    void setOldName(const QString &newOldName);
+
 private:
     QString name = "";
+    QString oldName = "";
     QString role = "";
     QString email = "";
+    QString oldEmail = "";
     QString phoneNumber = "";
     float salary = 0.0;
     QString login = "";
