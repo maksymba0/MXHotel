@@ -1013,7 +1013,6 @@ void MainWindow::OnNewCustomerCreated()
 void MainWindow::OnSelectedCustomerRemoved()
 {
     qDebug() << "OnCustomerRemoved";
-
     QSet<int> rows;
 
     // Change information on booking
@@ -1028,7 +1027,9 @@ void MainWindow::OnSelectedCustomerRemoved()
 
 
 
-
+    if (QMessageBox::question(this, "Confirm Deletion", "Are you sure you want to delete this customer?") != QMessageBox::Yes) {
+        return;
+    }
 
     // Update UI
     for(auto& obj : selectedItems)
@@ -1049,13 +1050,97 @@ void MainWindow::OnSelectedCustomerRemoved()
         QString ID = CustomerTable->item(Row,0)->text();
         QString email = CustomerTable->item(Row,5   )->text();
         QString bookingNum = CustomerTable->item(Row,1)->text();
-        QString Query = QString("Name: %1 Phone: %2 Email: %3 Booking: %4/")
-                            .arg(name)
-                            .arg(phone)
-                            .arg(email)
-                            .arg(bookingNum);
+        bool hasName = name != "";
+        bool hasPhone = phone != "";
+        bool hasID = ID != "";
+        bool hasEmail = email != "";
+        bool hasBookingNum = bookingNum != "";
 
-        qDebug() << "Removing customer: Sending request" << Query;
+        if(!hasName && !hasPhone && !hasID && !hasEmail && !hasBookingNum)
+        {
+            QMessageBox::warning(this,"Remove customer - failure","Failed to remove empty customer.");
+            return;
+        }
+        QString Query = QString("SELECT COUNT(*) FROM Unique_Customer WHERE 1=1");
+
+        if(hasName)
+        {
+            Query += " AND name = :name";
+        }
+
+        if(hasPhone)
+        {
+            Query += " AND phone_number = :phone_number";
+        }
+
+        if(hasID)
+        {
+            Query += " AND id = :id";
+        }
+
+        if(hasEmail)
+        {
+            Query += " AND email = :email";
+        }
+
+        if(hasBookingNum)
+        {
+            Query += " AND booking_number= :booking_number";
+        }
+
+        QSqlQuery ExistsCustomer;// just an extra check if it exists
+        ExistsCustomer.prepare(Query);
+
+        if(hasName)
+        {
+            ExistsCustomer.bindValue(":name",name);
+        }
+
+        if(hasPhone)
+        {
+            ExistsCustomer.bindValue(":phone_number",phone);
+        }
+
+        if(hasID)
+        {
+            ExistsCustomer.bindValue(":id",ID);
+        }
+
+        if(hasEmail)
+        {
+            ExistsCustomer.bindValue(":email",email);
+        }
+
+        if(hasBookingNum)
+        {
+            ExistsCustomer.bindValue(":booking_number",bookingNum);
+        }
+
+
+        if(ExistsCustomer.exec())
+        {
+            if(ExistsCustomer.next())
+            {
+                if(ExistsCustomer.value(0).toInt() <= 0)
+                {
+                    QMessageBox::warning(this,"Remove Customer","This customer doesn't exist on database.");
+                    return;
+                }
+            }
+        }
+        else
+        {
+            QMessageBox::warning(this,"Remove Customer","Internal error to find existing one:"+ExistsCustomer.lastError().text());
+            return;
+        }
+
+        QSqlQuery RemoveCustomerQuery;
+        RemoveCustomerQuery.prepare("DELETE FROM Unique_Customer WHERE id = :id");
+        RemoveCustomerQuery.bindValue(":id",ID);
+        if (!RemoveCustomerQuery.exec()) {
+            QMessageBox::warning(this, "Delete failed", "Could not delete customer: " + RemoveCustomerQuery.lastError().text());
+            return;
+        }
 
         bool IsSuccess = false;
 
