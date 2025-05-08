@@ -531,7 +531,7 @@ public:
         label_6->setGeometry(QRect(800, 0, 81, 20));
         label_8 = new QLabel(tab_2);
         label_8->setObjectName("label_8");
-        label_8->setGeometry(QRect(890, 0, 111, 20));
+        label_8->setGeometry(QRect(890, 0, 221, 20));
         tabWidget->addTab(tab_2, QString());
         tab_3 = new QWidget();
         tab_3->setObjectName("tab_3");
@@ -770,7 +770,7 @@ public:
         retranslateUi(MainWindow);
 
         tabWidget->setCurrentIndex(3);
-        tabWidget_2->setCurrentIndex(1);
+        tabWidget_2->setCurrentIndex(2);
         tabWidget_3->setCurrentIndex(3);
 
 
@@ -845,8 +845,8 @@ public:
         BookingRoom_17->setText(QCoreApplication::translate("MainWindow", "Booking", nullptr));
         BookingRoom_18->setText(QCoreApplication::translate("MainWindow", "Booking", nullptr));
         tabWidget_2->setTabText(tabWidget_2->indexOf(tab_11), QCoreApplication::translate("MainWindow", "Floor 2", nullptr));
-        label_6->setText(QCoreApplication::translate("MainWindow", "Staff: 10", nullptr));
-        label_8->setText(QCoreApplication::translate("MainWindow", "Customers: 34", nullptr));
+        label_6->setText(QCoreApplication::translate("MainWindow", "Staff: %d", nullptr));
+        label_8->setText(QCoreApplication::translate("MainWindow", "Availability: %a/%b", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("MainWindow", "Hotel Map", nullptr));
         QTableWidgetItem *___qtablewidgetitem8 = tableWidget_3->horizontalHeaderItem(0);
         ___qtablewidgetitem8->setText(QCoreApplication::translate("MainWindow", "Name", nullptr));

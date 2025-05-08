@@ -1461,7 +1461,7 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_9">
        <attribute name="title">
@@ -1806,7 +1806,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Staff: 10</string>
+       <string>Staff: %d</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_8">
@@ -1814,12 +1814,12 @@
        <rect>
         <x>890</x>
         <y>0</y>
-        <width>111</width>
+        <width>221</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string>Customers: 34</string>
+       <string>Availability: %a/%b</string>
       </property>
      </widget>
     </widget>

@@ -90,13 +90,19 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
     Booking* booking = &newbkg;
 
 
-    //  BOOKING DETAILS
+    QDate today = QDate::currentDate(); // today's date
+
     QSqlQuery query;
     query.prepare(R"(
-    SELECT * from Booking
-    WHERE room_number = :roomNumber
-                  )");
-    query.bindValue(":roomNumber",RoomNumber);
+        SELECT * FROM Booking
+        WHERE room_number = :roomNumber
+          AND :today >= checkin_date
+          AND :today <= checkout_date
+    )");
+
+    query.bindValue(":roomNumber", RoomNumber);
+    query.bindValue(":today", today);
+
     int bookingId = -1;
     if (query.exec()) {
         if (query.next()) {
@@ -122,6 +128,7 @@ void MainWindow::OnRoomInfoRequested(QString RoomName)
                 ui->tableWidget_2->clearContents();
                 ui->tableWidget_2->setRowCount(0);
                 OnNewBooking();
+                getBooking()->setRoomNumber(RoomNumber);
             }else
             {
                 //No
@@ -822,10 +829,13 @@ void MainWindow::OnCustomerInfoRequested()
         SearchCustomerQuery.bindValue(":booking_number",bookingNum);
     }
 
-    if(SearchCustomerQuery.exec())
+    if (SearchCustomerQuery.exec())
     {
-        while(SearchCustomerQuery.next())
+        bool found = false;
+        while (SearchCustomerQuery.next())
         {
+            found = true;
+
             UCustomer ucustomer;
             ucustomer.setBookingNumber(SearchCustomerQuery.value("booking_number").toString());
             ucustomer.setPhonenumber(SearchCustomerQuery.value("phone_number").toString());
@@ -835,12 +845,20 @@ void MainWindow::OnCustomerInfoRequested()
             ucustomer.setLastRoom(SearchCustomerQuery.value("last_room").toInt());
             ucustomer.setName(SearchCustomerQuery.value("name").toString());
             AddCustomer(&ucustomer);
-            LoadCustomers();
         }
-    }else
-    {
-        QMessageBox::warning(this,"Search Unique Customer - Failed","Internal failure to search customer:"+SearchCustomerQuery.lastError().text());
+
+        LoadCustomers(); // Only call once, after all additions
+
+        if (!found)
+        {
+            QMessageBox::information(this, "No Results", "No matching customer found.");
+        }
     }
+    else
+    {
+        QMessageBox::warning(this, "Search Unique Customer - Failed", "Internal failure to search customer: " + SearchCustomerQuery.lastError().text());
+    }
+
 
 
 }
@@ -2371,21 +2389,77 @@ void MainWindow::LoadBooking()
 
     this->blockSignals(false);
 }
-void MainWindow::SetHotelMapPage(){
+void MainWindow::SetHotelMapPage()
+{
+    connect(ui->tabWidget, &QTabWidget::tabBarClicked, this, [this](int index) {
+        // 1. Get currently booked room numbers
+        if(index != 1) return;
 
-    QList<QPushButton*> buttons = this->findChildren<QPushButton*>();
-    for(const auto& obj: buttons)
-    {
-        if(obj->objectName().contains("Room"))
+        QSet<int> bookedRooms;
+        QSqlQuery RoomNumsBookedQuery;
+
+        RoomNumsBookedQuery.prepare(R"(
+            SELECT DISTINCT room_number
+            FROM Booking
+            WHERE DATE('now') BETWEEN DATE(checkin_date) AND DATE(checkout_date)
+        )");
+
+        if (RoomNumsBookedQuery.exec()) {
+            while (RoomNumsBookedQuery.next()) {
+                bookedRooms.insert(RoomNumsBookedQuery.value(0).toInt());
+            }
+        } else {
+            qDebug() << "Booking room check failed:" << RoomNumsBookedQuery.lastError();
+        }
+
+        // 2. Set total and booked room labels (if you still need these)
+        const int MaxRooms = 20;
+        ui->label_8->setText("Booked: " + QString::number(bookedRooms.size()));
+        ui->label_8->setText(ui->label_8->text()+" / " + QString::number(MaxRooms));
+
+        // 3. Update button colors
+        for(auto& object : bookedRooms)
         {
-            //qDebug() << "Found room: "<<obj->objectName();
-            connect(obj,&QPushButton::clicked,this,[this,obj](){
+            qDebug() << "Booked room:" << object;
+        }
+        for (int i = 0; i < MaxRooms; ++i) {
+            QString buttonName = "BookingRoom_" + QString::number(i);
+            QPushButton* roomButton = this->findChild<QPushButton*>(buttonName);
+            if (roomButton)
+            {
+                // Inside your room update loop:
+                if (bookedRooms.contains(i)) {
+                    roomButton->setStyleSheet("border: 2px solid green; background-color:green; border-radius: 6px; font-weight: bold;");
+                } else {
+                    roomButton->setStyleSheet("border: 1px solid gray; border-radius: 6px; background-color:grey;font-weight: normal;");
+                }
+
+            }
+        }
+
+        // 4. Optional: Employee count
+        QSqlQuery EmployeesQuery;
+        int employeeCount = 0;
+
+        EmployeesQuery.prepare("SELECT COUNT(*) FROM Employee");
+        if (EmployeesQuery.exec() && EmployeesQuery.next()) {
+            employeeCount = EmployeesQuery.value(0).toInt();
+        }
+
+        ui->label_6->setText("Employees: " + QString::number(employeeCount));
+    });
+
+    // 5. Connect room buttons to room info popup
+    QList<QPushButton*> buttons = this->findChildren<QPushButton*>();
+    for (const auto& obj : buttons) {
+        if (obj->objectName().contains("Room")) {
+            connect(obj, &QPushButton::clicked, this, [this, obj]() {
                 OnRoomInfoRequested(obj->objectName());
             });
         }
     }
-
 }
+
 
 void MainWindow::SetEmployeesPage(){
 
