@@ -4,6 +4,7 @@ release/customer.o
 release/employee.o
 release/main.o
 release/mainwindow.o
+release/partner.o
 release/payment.o
 release/thememanager.o
 release/ucustomer.o

@@ -1181,6 +1181,161 @@ void MainWindow::OnSelectedCustomerRemoved()
     }
 
 }
+
+void MainWindow::OnNewPartnerCreated()
+{
+
+    bool hasName = false;
+    bool hasWebsite = false;
+    bool hasPhone = false;
+    bool hasEmail = false;
+    bool hasDetails = false;
+
+    QString NAME = QInputDialog::getText(nullptr," Create Partner "," Name of the company");
+    QString WEBSITE = QInputDialog::getText(nullptr," Create Partner "," Website of the company");
+    QString PHONE = QInputDialog::getText(nullptr," Create Partner "," Phone of the company");
+    QString EMAIL= QInputDialog::getText(nullptr," Create Partner "," Email of the company");
+    QString DETAILS = QInputDialog::getText(nullptr," Create Partner "," Information about the company");
+
+
+    QRegularExpression regex("^[A-Za-z0-9 ]+$");
+    if(NAME != "" && regex.match(NAME).hasMatch()) //
+    {
+        hasName = true;
+    }
+    else
+    {
+        QMessageBox::warning(this,"Create Partner","Please provide a name to the company.");
+        return;
+    }
+    regex = QRegularExpression(R"(^[A-Za-z0-9.%]+$)");
+    if(WEBSITE != "" && regex.match(WEBSITE).hasMatch()) //
+    {
+        hasWebsite = true;
+    }
+    regex = QRegularExpression("^[+0-9 ]+$");
+    if(PHONE != "" && regex.match(PHONE).hasMatch()) //
+    {
+        hasPhone= true;
+    }
+
+    regex = QRegularExpression(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
+    if(EMAIL != "" && regex.match(EMAIL).hasMatch()) //
+    {
+        hasEmail = true;
+    }
+
+    if(DETAILS != "") //
+    {
+        hasDetails = true;
+    }
+
+    //qDebug() << ui->lineEdit_3->text() << " " << ui->lineEdit_4->text() << " " << ui->lineEdit_5->text();
+    QString name = hasName ? NAME : "";
+    QString website = hasWebsite ? WEBSITE : "";
+    QString phone = hasPhone ? PHONE : "";
+    QString email = hasEmail ? EMAIL : "";
+    QString details = hasDetails ? DETAILS : "";
+
+    QString DoesPartnerExistsQuery = "SELECT COUNT(*) FROM Partner WHERE name = :name";
+    if(website != "")
+    {
+        DoesPartnerExistsQuery += " AND website = :website";
+    }
+    QSqlQuery DoesPartnerExists;
+    DoesPartnerExists.prepare(DoesPartnerExistsQuery);
+
+    DoesPartnerExists.bindValue(":name",name);
+    if(website != "")
+    {
+        DoesPartnerExists.bindValue(":website",website);
+    }
+    bool Exists = false;
+    if(DoesPartnerExists.exec())
+    {
+        if(DoesPartnerExists.next())
+        {
+            if(DoesPartnerExists.value(0).toInt() > 0)
+            {
+                Exists = true;
+                // exists
+            }
+        }
+    }else
+    {
+        QMessageBox::warning(this,"Create Partner","Failed to check if the partner exists.");
+        return;
+    }
+    if(Exists)
+    {
+        QMessageBox::warning(this,"Create Partner","This partner already exists.");
+        return;
+    }
+
+    QSqlQuery CreatePartnerQuery;
+    CreatePartnerQuery.prepare(R"(INSERT INTO Partner (
+partner_type,name,phone_number,email,website,details)
+    VALUES (:partner_type,:name,:phone_number,:email,:website,:details)
+    RETURNING   id
+    )");
+
+    CreatePartnerQuery.bindValue(":name",name);
+    CreatePartnerQuery.bindValue(":website",website);
+
+    CreatePartnerQuery.bindValue(":partner_type",ui->tabWidget_3->currentIndex());
+    CreatePartnerQuery.bindValue(":phone_number",phone);
+
+    CreatePartnerQuery.bindValue(":email",email);
+    CreatePartnerQuery.bindValue(":details",details);
+
+    if(!CreatePartnerQuery.exec() || !CreatePartnerQuery.next())
+    {
+        QMessageBox::warning(this,"Create Partner - failed",
+                             "Failed to create partner. Internal Error: " + CreatePartnerQuery.lastError().text());
+        return;
+    }
+    auto PartnerTable = ui->tableWidget_5;
+    auto count = PartnerTable->rowCount();
+    PartnerTable->insertRow(count);
+    qDebug() << "rows: "<<PartnerTable->rowCount();
+    int columnNum = PartnerTable->columnCount();
+
+    Partner partner;
+    partner.setPartnerType(ui->tabWidget_3->currentIndex());
+    partner.setPhoneNumber(phone);
+    partner.setDetails(details);
+    partner.setEmail(email);
+    partner.setName(name);
+    partner.setWebsite(website);
+    partner.setId(CreatePartnerQuery.value("id").toInt());
+    partners.push_back(partner);
+    PartnerTable->blockSignals(true);
+    for(int i = 0 ; i < columnNum; ++i)
+    {
+        QTableWidgetItem* item = new QTableWidgetItem(" ");
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        PartnerTable->setItem(count,i,item);
+        auto Widget = PartnerTable->item(count,i);
+        if(Widget)
+        {
+            Widget->setBackground(QColor(0x545454));
+        }
+        else
+        {
+            qDebug() << "Reading nullptr;";
+        }
+    }
+
+    PartnerTable->blockSignals(false);
+    QMessageBox::information(this,"Create Partner","Successfully created a Partner.");
+
+    LoadPartners();
+}
+
+void MainWindow::OnPartnerRemoved()
+{
+
+}
 void MainWindow::OnNewBooking()
 {
     getBooking()->Clear();
@@ -2392,8 +2547,30 @@ void MainWindow::LoadBooking()
 void MainWindow::SetHotelMapPage()
 {
     connect(ui->tabWidget, &QTabWidget::tabBarClicked, this, [this](int index) {
+
         // 1. Get currently booked room numbers
-        if(index != 1) return;
+        switch(index)
+        {
+        case 0: // booking
+            this->resize(this->width(), 682); // Or any height you want
+            return;
+        case 1: // hotelmap
+            this->resize(this->width(), 682); // Or any height you want
+            break;
+        case 2: // employes
+            this->resize(this->width(), 682); // Or any height you want
+            return;
+        case 3: // customers
+            this->resize(this->width(), 682); // Or any height you want
+            return;
+        case 4: // partners
+            this->resize(this->width(), 740); // Or any height you want
+            return;
+        case 5: //settings
+        default:
+            this->resize(this->width(), 682); // Or any height you want
+            return;
+        }
 
         QSet<int> bookedRooms;
         QSqlQuery RoomNumsBookedQuery;
@@ -2804,6 +2981,145 @@ void MainWindow::AddCustomer(UCustomer *customer)
 }
 void MainWindow::setPartnersPage(){
 
+    connect(ui->pushButton_13,&QPushButton::clicked,this,&MainWindow::OnNewPartnerCreated);// create
+    connect(ui->pushButton_14,&QPushButton::clicked,this,&MainWindow::OnPartnerRemoved); // remove
+    connect(ui->tabWidget_3, &QTabWidget::tabBarClicked, this, [this](int index) {
+        // 1. Get currently booked room numbers
+        if(index != 0) return;
+
+        switch(index)
+        {
+        case 0: {
+            QSqlQuery PartnerServices;
+            PartnerServices.prepare("SELECT * from Partner WHERE partner_type = :index");
+            PartnerServices.bindValue(":index", index);  // Fixed bindValue name too!
+            if(PartnerServices.exec())
+            {
+                bool foundValue = false;
+                while(PartnerServices.next())
+                {
+                    foundValue = true;
+                    Partner partner;
+                    // TODO: Populate Partner object if needed
+                }
+                if(!foundValue)
+                {
+                    qDebug() << "None partner found for index: " << index;
+                }
+            }
+            else
+            {
+                QMessageBox::warning(this,"Partner - Find", "Failed to find the partner with index: " + QString::number(index));
+            }
+            break;
+        }
+        case 1: break;
+        case 2: break;
+        case 3: break;
+        default: break;
+        }
+
+
+        QSet<int> bookedRooms;
+        QSqlQuery RoomNumsBookedQuery;
+
+        RoomNumsBookedQuery.prepare(R"(
+            SELECT DISTINCT room_number
+            FROM Booking
+            WHERE DATE('now') BETWEEN DATE(checkin_date) AND DATE(checkout_date)
+        )");
+
+        if (RoomNumsBookedQuery.exec()) {
+            while (RoomNumsBookedQuery.next()) {
+                bookedRooms.insert(RoomNumsBookedQuery.value(0).toInt());
+            }
+        } else {
+            qDebug() << "Booking room check failed:" << RoomNumsBookedQuery.lastError();
+        }
+
+        // 2. Set total and booked room labels (if you still need these)
+        const int MaxRooms = 20;
+        ui->label_8->setText("Booked: " + QString::number(bookedRooms.size()));
+        ui->label_8->setText(ui->label_8->text()+" / " + QString::number(MaxRooms));
+
+        // 3. Update button colors
+        for(auto& object : bookedRooms)
+        {
+            qDebug() << "Booked room:" << object;
+        }
+        for (int i = 0; i < MaxRooms; ++i) {
+            QString buttonName = "BookingRoom_" + QString::number(i);
+            QPushButton* roomButton = this->findChild<QPushButton*>(buttonName);
+            if (roomButton)
+            {
+                // Inside your room update loop:
+                if (bookedRooms.contains(i)) {
+                    roomButton->setStyleSheet("border: 2px solid green; background-color:green; border-radius: 6px; font-weight: bold;");
+                } else {
+                    roomButton->setStyleSheet("border: 1px solid gray; border-radius: 6px; background-color:grey;font-weight: normal;");
+                }
+
+            }
+        }
+
+        // 4. Optional: Employee count
+        QSqlQuery EmployeesQuery;
+        int employeeCount = 0;
+
+        EmployeesQuery.prepare("SELECT COUNT(*) FROM Employee");
+        if (EmployeesQuery.exec() && EmployeesQuery.next()) {
+            employeeCount = EmployeesQuery.value(0).toInt();
+        }
+
+        ui->label_6->setText("Employees: " + QString::number(employeeCount));
+    });
+}
+
+void MainWindow::LoadPartners()
+{
+    this->blockSignals(true);
+    auto PartnerTable = ui->tableWidget_5;
+    PartnerTable->blockSignals(true);
+
+    if(partners.empty())
+    {
+        PartnerTable->clearContents();
+        PartnerTable->setRowCount(0);
+    }
+    else
+    {
+        for(int i = 0 ; i < partners.size(); ++i)
+        {
+            auto partner = partners[i];
+
+
+            int RowCount = PartnerTable->rowCount();
+            if(i > RowCount-1)
+            {
+                PartnerTable->insertRow(RowCount); // Insert at the end
+            }
+
+            PartnerTable->setItem(i,0,new QTableWidgetItem(partner.getName()));
+            PartnerTable->item(i,0)->setFlags(PartnerTable->item(i,0)->flags() & ~Qt::ItemIsEditable);
+
+            PartnerTable->setItem(i,1,new QTableWidgetItem(partner.getPhoneNumber()));
+            PartnerTable->item(i,1)->setFlags(PartnerTable->item(i,1)->flags() & ~Qt::ItemIsEditable);
+
+            PartnerTable->setItem(i,2,new QTableWidgetItem(partner.getEmail()));
+            PartnerTable->item(i,2)->setFlags(PartnerTable->item(i,2)->flags() & ~Qt::ItemIsEditable);
+
+            PartnerTable->setItem(i,3,new QTableWidgetItem(partner.getWebsite()));
+            PartnerTable->item(i,3)->setFlags(PartnerTable->item(i,3)->flags() & ~Qt::ItemIsEditable);
+
+            PartnerTable->setItem(i,4,new QTableWidgetItem(partner.getDetails()));
+            PartnerTable->item(i,4)->setFlags(PartnerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+
+
+        }
+    }
+
+    this->blockSignals(false);
+    PartnerTable->blockSignals(false);
 }
 void MainWindow::SetNotificationsPage(){
 

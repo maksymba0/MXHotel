@@ -4,6 +4,7 @@ debug/customer.o
 debug/employee.o
 debug/main.o
 debug/mainwindow.o
+debug/partner.o
 debug/payment.o
 debug/thememanager.o
 debug/ucustomer.o

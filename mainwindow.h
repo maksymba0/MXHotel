@@ -8,6 +8,7 @@
 #include "employee.h"
 #include "payment.h"
 #include "ucustomer.h"
+#include "partner.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -54,6 +55,9 @@ public:
 
     //Partners Page
     void setPartnersPage();
+    Partner* GetPartner();
+    void LoadPartners();
+
     //Notifications Page
     void SetNotificationsPage();
     //Requests Page
@@ -105,7 +109,8 @@ private slots:
     void OnNewCustomerCreated();
     void OnSelectedCustomerRemoved();
 
-
+    void OnNewPartnerCreated();
+    void OnPartnerRemoved();
 
     void OnSavedChanges();
     void OnNewBooking();
@@ -124,6 +129,8 @@ private:
     QList<Customer> customers;
 
     QList<UCustomer> uCustomers;
+
+    QList<Partner> partners;
 
     Ui::MainWindow *ui;
 public:

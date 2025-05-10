@@ -16,6 +16,7 @@ SOURCES += \
     employee.cpp \
     main.cpp \
     mainwindow.cpp \
+    partner.cpp \
     payment.cpp \
     thememanager.cpp \
     ucustomer.cpp
@@ -26,6 +27,7 @@ HEADERS += \
     customer.h \
     employee.h \
     mainwindow.h \
+    partner.h \
     payment.h \
     thememanager.h \
     ucustomer.h

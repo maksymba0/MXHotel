@@ -130,6 +130,8 @@ public:
     QTableWidget *tableWidget_8;
     QWidget *tab_8;
     QComboBox *comboBox;
+    QPushButton *pushButton_13;
+    QPushButton *pushButton_14;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -137,7 +139,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
-        MainWindow->resize(1158, 666);
+        MainWindow->resize(1161, 796);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
         centralwidget->setEnabled(true);
@@ -683,7 +685,7 @@ public:
         QTableWidgetItem *__qtablewidgetitem26 = new QTableWidgetItem();
         tableWidget_5->setHorizontalHeaderItem(4, __qtablewidgetitem26);
         tableWidget_5->setObjectName("tableWidget_5");
-        tableWidget_5->setGeometry(QRect(0, 0, 1141, 561));
+        tableWidget_5->setGeometry(QRect(0, 0, 1151, 571));
         tableWidget_5->horizontalHeader()->setStretchLastSection(true);
         tabWidget_3->addTab(tab_12, QString());
         tab_13 = new QWidget();
@@ -757,11 +759,17 @@ public:
         comboBox->setObjectName("comboBox");
         comboBox->setGeometry(QRect(20, 30, 191, 41));
         tabWidget->addTab(tab_8, QString());
+        pushButton_13 = new QPushButton(centralwidget);
+        pushButton_13->setObjectName("pushButton_13");
+        pushButton_13->setGeometry(QRect(0, 670, 971, 81));
+        pushButton_14 = new QPushButton(centralwidget);
+        pushButton_14->setObjectName("pushButton_14");
+        pushButton_14->setGeometry(QRect(960, 670, 201, 81));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
         menubar->setEnabled(true);
-        menubar->setGeometry(QRect(0, 0, 1158, 26));
+        menubar->setGeometry(QRect(0, 0, 1161, 26));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName("statusbar");
@@ -769,9 +777,9 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(3);
+        tabWidget->setCurrentIndex(4);
         tabWidget_2->setCurrentIndex(2);
-        tabWidget_3->setCurrentIndex(3);
+        tabWidget_3->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -951,6 +959,8 @@ public:
         comboBox->setItemText(2, QCoreApplication::translate("MainWindow", "CUSTOM", nullptr));
 
         tabWidget->setTabText(tabWidget->indexOf(tab_8), QCoreApplication::translate("MainWindow", "SETTINGS", nullptr));
+        pushButton_13->setText(QCoreApplication::translate("MainWindow", "Create", nullptr));
+        pushButton_14->setText(QCoreApplication::translate("MainWindow", "Remove", nullptr));
     } // retranslateUi
 
 };
