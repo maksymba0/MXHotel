@@ -22,6 +22,11 @@ public:
         phoneNumber(phoneNumber), email(email),
         website(website), details(details) {}
 
+    bool operator==(const Partner& other) const
+    {
+        return id == other.id &&
+               partnerType == other.partnerType;
+    }
     // Getters
     int getId() const { return id; }
     int getPartnerType() const { return partnerType; }

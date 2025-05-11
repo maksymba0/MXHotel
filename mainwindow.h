@@ -56,6 +56,7 @@ public:
     //Partners Page
     void setPartnersPage();
     Partner* GetPartner();
+    void AddPartner(Partner* partner);
     void LoadPartners();
 
     //Notifications Page

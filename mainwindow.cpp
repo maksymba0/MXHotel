@@ -2546,7 +2546,8 @@ void MainWindow::LoadBooking()
 }
 void MainWindow::SetHotelMapPage()
 {
-    connect(ui->tabWidget, &QTabWidget::tabBarClicked, this, [this](int index) {
+    connect(ui->tabWidget, &QTabWidget::tabBarClicked, this, [this](int index)
+    {
 
         // 1. Get currently booked room numbers
         switch(index)
@@ -2555,8 +2556,62 @@ void MainWindow::SetHotelMapPage()
             this->resize(this->width(), 682); // Or any height you want
             return;
         case 1: // hotelmap
+        {
+            QSet<int> bookedRooms;
+            QSqlQuery RoomNumsBookedQuery;
+
+            RoomNumsBookedQuery.prepare(R"(
+            SELECT DISTINCT room_number
+            FROM Booking
+            WHERE DATE('now') BETWEEN DATE(checkin_date) AND DATE(checkout_date)
+        )");
+
+            if (RoomNumsBookedQuery.exec()) {
+                while (RoomNumsBookedQuery.next()) {
+                    bookedRooms.insert(RoomNumsBookedQuery.value(0).toInt());
+                }
+            } else {
+                qDebug() << "Booking room check failed:" << RoomNumsBookedQuery.lastError();
+            }
+
+            // 2. Set total and booked room labels (if you still need these)
+            const int MaxRooms = 20;
+            ui->label_8->setText("Booked: " + QString::number(bookedRooms.size()));
+            ui->label_8->setText(ui->label_8->text()+" / " + QString::number(MaxRooms));
+
+            // 3. Update button colors
+            for(auto& object : bookedRooms)
+            {
+                qDebug() << "Booked room:" << object;
+            }
+            for (int i = 0; i < MaxRooms; ++i) {
+                QString buttonName = "BookingRoom_" + QString::number(i);
+                QPushButton* roomButton = this->findChild<QPushButton*>(buttonName);
+                if (roomButton)
+                {
+                    // Inside your room update loop:
+                    if (bookedRooms.contains(i)) {
+                        roomButton->setStyleSheet("border: 2px solid green; background-color:green; border-radius: 6px; font-weight: bold;");
+                    } else {
+                        roomButton->setStyleSheet("border: 1px solid gray; border-radius: 6px; background-color:grey;font-weight: normal;");
+                    }
+
+                }
+            }
+
+            // 4. Optional: Employee count
+            QSqlQuery EmployeesQuery;
+            int employeeCount = 0;
+
+            EmployeesQuery.prepare("SELECT COUNT(*) FROM Employee");
+            if (EmployeesQuery.exec() && EmployeesQuery.next()) {
+                employeeCount = EmployeesQuery.value(0).toInt();
+            }
+
+            ui->label_6->setText("Employees: " + QString::number(employeeCount));
             this->resize(this->width(), 682); // Or any height you want
             break;
+        }
         case 2: // employes
             this->resize(this->width(), 682); // Or any height you want
             return;
@@ -2564,66 +2619,43 @@ void MainWindow::SetHotelMapPage()
             this->resize(this->width(), 682); // Or any height you want
             return;
         case 4: // partners
+        {
+            QSqlQuery PartnersCountQuery;
+            PartnersCountQuery.prepare("SELECT COUNT(*) FROM Partner");
+            if(!PartnersCountQuery.exec() || !PartnersCountQuery.next())
+            {
+                QMessageBox::warning(this,"Update Partners","Failed to update partners");
+            }
+            if(PartnersCountQuery.value(0) != partners.size()) // if table not contains same amount as db
+            {
+                QSqlQuery PartnersQuery;
+                PartnersQuery.prepare("SELECT * FROM Partner");
+                if(!PartnersQuery.exec())
+                {
+                    QMessageBox::warning(this,"Update Partners","Failed to update partners");
+                }
+                while(PartnersQuery.next())
+                {
+                    Partner partner;
+                    partner.setPartnerType(PartnersQuery.value("partner_type").toInt());
+                    partner.setDetails(PartnersQuery.value("details").toString());
+                    partner.setEmail(PartnersQuery.value("email").toString());
+                    partner.setId(PartnersQuery.value("id").toInt());
+                    partner.setPhoneNumber(PartnersQuery.value("phone_number").toString());
+                    partner.setName(PartnersQuery.value("name").toString());
+                    partner.setWebsite(PartnersQuery.value("website").toString());
+                    AddPartner(&partner);
+                }
+                LoadPartners();
+            }
             this->resize(this->width(), 740); // Or any height you want
             return;
+        }
         case 5: //settings
         default:
             this->resize(this->width(), 682); // Or any height you want
             return;
         }
-
-        QSet<int> bookedRooms;
-        QSqlQuery RoomNumsBookedQuery;
-
-        RoomNumsBookedQuery.prepare(R"(
-            SELECT DISTINCT room_number
-            FROM Booking
-            WHERE DATE('now') BETWEEN DATE(checkin_date) AND DATE(checkout_date)
-        )");
-
-        if (RoomNumsBookedQuery.exec()) {
-            while (RoomNumsBookedQuery.next()) {
-                bookedRooms.insert(RoomNumsBookedQuery.value(0).toInt());
-            }
-        } else {
-            qDebug() << "Booking room check failed:" << RoomNumsBookedQuery.lastError();
-        }
-
-        // 2. Set total and booked room labels (if you still need these)
-        const int MaxRooms = 20;
-        ui->label_8->setText("Booked: " + QString::number(bookedRooms.size()));
-        ui->label_8->setText(ui->label_8->text()+" / " + QString::number(MaxRooms));
-
-        // 3. Update button colors
-        for(auto& object : bookedRooms)
-        {
-            qDebug() << "Booked room:" << object;
-        }
-        for (int i = 0; i < MaxRooms; ++i) {
-            QString buttonName = "BookingRoom_" + QString::number(i);
-            QPushButton* roomButton = this->findChild<QPushButton*>(buttonName);
-            if (roomButton)
-            {
-                // Inside your room update loop:
-                if (bookedRooms.contains(i)) {
-                    roomButton->setStyleSheet("border: 2px solid green; background-color:green; border-radius: 6px; font-weight: bold;");
-                } else {
-                    roomButton->setStyleSheet("border: 1px solid gray; border-radius: 6px; background-color:grey;font-weight: normal;");
-                }
-
-            }
-        }
-
-        // 4. Optional: Employee count
-        QSqlQuery EmployeesQuery;
-        int employeeCount = 0;
-
-        EmployeesQuery.prepare("SELECT COUNT(*) FROM Employee");
-        if (EmployeesQuery.exec() && EmployeesQuery.next()) {
-            employeeCount = EmployeesQuery.value(0).toInt();
-        }
-
-        ui->label_6->setText("Employees: " + QString::number(employeeCount));
     });
 
     // 5. Connect room buttons to room info popup
@@ -2640,8 +2672,6 @@ void MainWindow::SetHotelMapPage()
 
 void MainWindow::SetEmployeesPage(){
 
-    Employee employee("Maksy Creator","admin");
-    employee.Print();
 
     connect(ui->pushButton_27,&QPushButton::clicked,this,&MainWindow::OnEmployeeCreated);
         //Create
@@ -2666,9 +2696,6 @@ void MainWindow::SetEmployeesPage(){
     connect(ui->pushButton_33,&QPushButton::clicked,this,&MainWindow::OnSearchEmployee);
 
     ResetAndGetEmployees();
-
-
-
 
 
     //Remove
@@ -2983,9 +3010,10 @@ void MainWindow::setPartnersPage(){
 
     connect(ui->pushButton_13,&QPushButton::clicked,this,&MainWindow::OnNewPartnerCreated);// create
     connect(ui->pushButton_14,&QPushButton::clicked,this,&MainWindow::OnPartnerRemoved); // remove
-    connect(ui->tabWidget_3, &QTabWidget::tabBarClicked, this, [this](int index) {
+    connect(ui->tabWidget_3, &QTabWidget::tabBarClicked, this, [this](int index)
+            {
         // 1. Get currently booked room numbers
-        if(index != 0) return;
+
 
         switch(index)
         {
@@ -3013,114 +3041,89 @@ void MainWindow::setPartnersPage(){
             }
             break;
         }
-        case 1: break;
+        case 1:
+        {
+
+        }
         case 2: break;
         case 3: break;
+        case 4: break;
         default: break;
         }
 
 
-        QSet<int> bookedRooms;
-        QSqlQuery RoomNumsBookedQuery;
-
-        RoomNumsBookedQuery.prepare(R"(
-            SELECT DISTINCT room_number
-            FROM Booking
-            WHERE DATE('now') BETWEEN DATE(checkin_date) AND DATE(checkout_date)
-        )");
-
-        if (RoomNumsBookedQuery.exec()) {
-            while (RoomNumsBookedQuery.next()) {
-                bookedRooms.insert(RoomNumsBookedQuery.value(0).toInt());
-            }
-        } else {
-            qDebug() << "Booking room check failed:" << RoomNumsBookedQuery.lastError();
-        }
-
-        // 2. Set total and booked room labels (if you still need these)
-        const int MaxRooms = 20;
-        ui->label_8->setText("Booked: " + QString::number(bookedRooms.size()));
-        ui->label_8->setText(ui->label_8->text()+" / " + QString::number(MaxRooms));
-
-        // 3. Update button colors
-        for(auto& object : bookedRooms)
-        {
-            qDebug() << "Booked room:" << object;
-        }
-        for (int i = 0; i < MaxRooms; ++i) {
-            QString buttonName = "BookingRoom_" + QString::number(i);
-            QPushButton* roomButton = this->findChild<QPushButton*>(buttonName);
-            if (roomButton)
-            {
-                // Inside your room update loop:
-                if (bookedRooms.contains(i)) {
-                    roomButton->setStyleSheet("border: 2px solid green; background-color:green; border-radius: 6px; font-weight: bold;");
-                } else {
-                    roomButton->setStyleSheet("border: 1px solid gray; border-radius: 6px; background-color:grey;font-weight: normal;");
-                }
-
-            }
-        }
-
-        // 4. Optional: Employee count
-        QSqlQuery EmployeesQuery;
-        int employeeCount = 0;
-
-        EmployeesQuery.prepare("SELECT COUNT(*) FROM Employee");
-        if (EmployeesQuery.exec() && EmployeesQuery.next()) {
-            employeeCount = EmployeesQuery.value(0).toInt();
-        }
-
-        ui->label_6->setText("Employees: " + QString::number(employeeCount));
     });
+}
+
+void MainWindow::AddPartner(Partner *partner)
+{
+    if(!partners.contains(*partner))
+    {
+        partners.push_back(*partner);
+    }
+    return;
 }
 
 void MainWindow::LoadPartners()
 {
     this->blockSignals(true);
-    auto PartnerTable = ui->tableWidget_5;
-    PartnerTable->blockSignals(true);
 
-    if(partners.empty())
+    // Shortcuts
+    auto table0 = ui->tableWidget_5;
+    auto table1 = ui->tableWidget_6;
+    auto table2 = ui->tableWidget_7;
+    auto table3 = ui->tableWidget_8;
+
+    table0->blockSignals(true);
+    table1->blockSignals(true);
+    table2->blockSignals(true);
+    table3->blockSignals(true);
+
+    // Clear all tables
+    table0->clearContents(); table0->setRowCount(0);
+    table1->clearContents(); table1->setRowCount(0);
+    table2->clearContents(); table2->setRowCount(0);
+    table3->clearContents(); table3->setRowCount(0);
+
+    // Row counters for each table
+    int row0 = 0, row1 = 0, row2 = 0, row3 = 0;
+
+    for (const auto& partner : partners)
     {
-        PartnerTable->clearContents();
-        PartnerTable->setRowCount(0);
-    }
-    else
-    {
-        for(int i = 0 ; i < partners.size(); ++i)
-        {
-            auto partner = partners[i];
+        QTableWidget* table = nullptr;
+        int* rowPtr = nullptr;
 
-
-            int RowCount = PartnerTable->rowCount();
-            if(i > RowCount-1)
-            {
-                PartnerTable->insertRow(RowCount); // Insert at the end
-            }
-
-            PartnerTable->setItem(i,0,new QTableWidgetItem(partner.getName()));
-            PartnerTable->item(i,0)->setFlags(PartnerTable->item(i,0)->flags() & ~Qt::ItemIsEditable);
-
-            PartnerTable->setItem(i,1,new QTableWidgetItem(partner.getPhoneNumber()));
-            PartnerTable->item(i,1)->setFlags(PartnerTable->item(i,1)->flags() & ~Qt::ItemIsEditable);
-
-            PartnerTable->setItem(i,2,new QTableWidgetItem(partner.getEmail()));
-            PartnerTable->item(i,2)->setFlags(PartnerTable->item(i,2)->flags() & ~Qt::ItemIsEditable);
-
-            PartnerTable->setItem(i,3,new QTableWidgetItem(partner.getWebsite()));
-            PartnerTable->item(i,3)->setFlags(PartnerTable->item(i,3)->flags() & ~Qt::ItemIsEditable);
-
-            PartnerTable->setItem(i,4,new QTableWidgetItem(partner.getDetails()));
-            PartnerTable->item(i,4)->setFlags(PartnerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
-
-
+        switch (partner.getPartnerType()) {
+        case 1: table = table1; rowPtr = &row1; break;
+        case 2: table = table2; rowPtr = &row2; break;
+        case 3: table = table3; rowPtr = &row3; break;
+        case 0:
+        default: table = table0; rowPtr = &row0; break;
         }
+
+        int row = (*rowPtr)++;
+        table->insertRow(row);
+
+        auto addItem = [&](int col, const QString& text) {
+            auto item = new QTableWidgetItem(text);
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            table->setItem(row, col, item);
+        };
+
+        addItem(0, partner.getName());
+        addItem(1, partner.getPhoneNumber());
+        addItem(2, partner.getEmail());
+        addItem(3, partner.getWebsite());
+        addItem(4, partner.getDetails());
     }
 
+    table0->blockSignals(false);
+    table1->blockSignals(false);
+    table2->blockSignals(false);
+    table3->blockSignals(false);
     this->blockSignals(false);
-    PartnerTable->blockSignals(false);
 }
+
 void MainWindow::SetNotificationsPage(){
 
 }
