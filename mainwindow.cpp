@@ -1334,8 +1334,82 @@ partner_type,name,phone_number,email,website,details)
 
 void MainWindow::OnPartnerRemoved()
 {
+    QList<QTableWidget*> partnerTables = {
+        ui->tableWidget_5, // Default
+        ui->tableWidget_6, // Taxi
+        ui->tableWidget_7, // Transfer
+        ui->tableWidget_8  // Airline
+    };
 
+    for (QTableWidget* table : partnerTables)
+    {
+        QList<QTableWidgetItem*> selectedItems = table->selectedItems();
+        if (selectedItems.isEmpty()) continue;
+
+        QSet<int> rows;
+        for (QTableWidgetItem* item : selectedItems)
+        {
+            rows.insert(item->row());
+        }
+
+        if (QMessageBox::question(this, "Confirm Deletion", "Are you sure you want to delete the selected partner(s)?") != QMessageBox::Yes) {
+            return;
+        }
+
+        // Iterate rows in reverse order to avoid index shift
+        QList<int> sortedRows = rows.values();
+        std::sort(sortedRows.begin(), sortedRows.end(), std::greater<int>());
+
+        for (int row : sortedRows)
+        {
+            QTableWidgetItem* idItem = table->item(row, 0);
+            if (!idItem) continue;
+            Partner* partner = this->GetPartnerByName(idItem->text());
+            if(!partner)
+            {
+                continue;
+            }
+            int id = partner->getId();
+            QString name = partner->getName();
+
+            // Database check
+            QSqlQuery checkQuery;
+            checkQuery.prepare("SELECT COUNT(*) FROM Partner WHERE name = :name");
+            checkQuery.bindValue(":name", name);
+
+            if (!checkQuery.exec() || !checkQuery.next() || checkQuery.value(0).toInt() == 0)
+            {
+                QMessageBox::warning(this, "Delete Error", "Partner not found in the database.");
+                continue;
+            }
+
+            // Delete from DB
+            QSqlQuery deleteQuery;
+            deleteQuery.prepare("DELETE FROM Partner WHERE id = :id");
+            deleteQuery.bindValue(":id", id);
+
+            if (!deleteQuery.exec())
+            {
+                QMessageBox::warning(this, "Delete Failed", "Failed to delete partner: " + deleteQuery.lastError().text());
+                continue;
+            }
+
+            // Remove from UI table
+            table->removeRow(row);
+
+            // Remove from internal list
+            auto it = std::find_if(partners.begin(), partners.end(), [id](const Partner& p) {
+                return p.getId() == id;
+            });
+            if (it != partners.end()) {
+                partners.erase(it);
+            }
+
+            QMessageBox::information(this, "Success", QString("Partner with ID %1 removed.").arg(id));
+        }
+    }
 }
+
 void MainWindow::OnNewBooking()
 {
     getBooking()->Clear();
@@ -3053,6 +3127,18 @@ void MainWindow::setPartnersPage(){
 
 
     });
+}
+
+Partner *MainWindow::GetPartnerByName(QString name)
+{
+    for(auto& partner : partners)
+    {
+        if(partner.getName() == name)
+        {
+            return &partner;
+        }
+    }
+    return nullptr;
 }
 
 void MainWindow::AddPartner(Partner *partner)

@@ -56,7 +56,9 @@ public:
     //Partners Page
     void setPartnersPage();
     Partner* GetPartner();
+    Partner* GetPartnerByName(QString name);
     void AddPartner(Partner* partner);
+    void RemovePartner(Partner* partner);
     void LoadPartners();
 
     //Notifications Page
