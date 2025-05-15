@@ -117,6 +117,7 @@ public:
     QPushButton *pushButton_30;
     QPushButton *pushButton_31;
     QPushButton *pushButton_32;
+    QPushButton *pushButton_35;
     QTableWidget *tableWidget_4;
     QWidget *tab_5;
     QTabWidget *tabWidget_3;
@@ -642,6 +643,9 @@ public:
         pushButton_32 = new QPushButton(groupBox_4);
         pushButton_32->setObjectName("pushButton_32");
         pushButton_32->setGeometry(QRect(900, 30, 101, 51));
+        pushButton_35 = new QPushButton(groupBox_4);
+        pushButton_35->setObjectName("pushButton_35");
+        pushButton_35->setGeometry(QRect(1010, 30, 101, 51));
         tableWidget_4 = new QTableWidget(tab_4);
         if (tableWidget_4->columnCount() < 7)
             tableWidget_4->setColumnCount(7);
@@ -777,7 +781,7 @@ public:
 
         retranslateUi(MainWindow);
 
-        tabWidget->setCurrentIndex(4);
+        tabWidget->setCurrentIndex(3);
         tabWidget_2->setCurrentIndex(2);
         tabWidget_3->setCurrentIndex(0);
 
@@ -894,6 +898,7 @@ public:
         pushButton_30->setText(QCoreApplication::translate("MainWindow", "Find", nullptr));
         pushButton_31->setText(QCoreApplication::translate("MainWindow", "Create", nullptr));
         pushButton_32->setText(QCoreApplication::translate("MainWindow", "Remove", nullptr));
+        pushButton_35->setText(QCoreApplication::translate("MainWindow", "Ban/Unban", nullptr));
         QTableWidgetItem *___qtablewidgetitem15 = tableWidget_4->horizontalHeaderItem(0);
         ___qtablewidgetitem15->setText(QCoreApplication::translate("MainWindow", "ID", nullptr));
         QTableWidgetItem *___qtablewidgetitem16 = tableWidget_4->horizontalHeaderItem(1);

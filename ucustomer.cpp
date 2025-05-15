@@ -90,3 +90,13 @@ void UCustomer::setIsModified(bool newIsModified)
 {
     isModified = newIsModified;
 }
+
+bool UCustomer::getIsBanned() const
+{
+    return isBanned;
+}
+
+void UCustomer::setIsBanned(bool newIsBanned)
+{
+    isBanned = newIsBanned;
+}

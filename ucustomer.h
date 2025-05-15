@@ -36,6 +36,9 @@ public:
     bool getIsModified() const;
     void setIsModified(bool newIsModified);
 
+    bool getIsBanned() const;
+    void setIsBanned(bool newIsBanned);
+
 private:
 
     int ID;
@@ -47,6 +50,7 @@ private:
     QString Information;
 
     bool isModified;
+    bool isBanned;
 
 };
 

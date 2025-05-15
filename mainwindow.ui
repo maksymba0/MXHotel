@@ -526,7 +526,7 @@
      <enum>Qt::LayoutDirection::LeftToRight</enum>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <property name="movable">
      <bool>false</bool>
@@ -2228,6 +2228,19 @@
        </property>
        <property name="text">
         <string>Remove</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_35">
+       <property name="geometry">
+        <rect>
+         <x>1010</x>
+         <y>30</y>
+         <width>101</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Ban/Unban</string>
        </property>
       </widget>
      </widget>

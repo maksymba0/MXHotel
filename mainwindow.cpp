@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     UpdateTheme((int)Themes::DEFAULT);
 
-
+    this->resize(this->width(), 682); // Or any height you want
 
 
 
@@ -521,8 +521,88 @@ void MainWindow::OnSavedChanges()
 }
 void MainWindow::OnBookingCustomerBanned()
 {
+     qDebug() << "OnCustomerBanned";
+    QSet<int> rows;
 
-    qDebug() << "OnCustomerBanned";
+    // Change information on booking
+
+    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+
+    if(selectedItems.empty())
+    {
+        auto RowMax = ui->tableWidget->rowCount();
+        if(RowMax <= 0)
+        {
+            return;
+        }
+        auto NameWidget = ui->tableWidget->item(RowMax-1,0);
+        if(!NameWidget)
+        {
+            return;
+        }
+        auto Name = (NameWidget->text() != "" ? NameWidget->text() : "Empty cell");
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this,"Ban customer",""
+                                                               "NO SPECIFIC CUSTOMER SELECTED. Are you sure you want to ban the last customer ( "+Name+ " ) from the booking?",
+                                      QMessageBox::Yes | QMessageBox::No);
+        if(reply == QMessageBox::Yes)
+        {
+            auto customer = booking.getCustomerByName(ui->tableWidget->item(RowMax-1,0)->text());
+            if(customer)
+            {
+                bool IsSuccess  = false;
+
+                // for each selected row
+                getBooking()->getCustomers().removeOne(*customer);
+                if(IsSuccess)
+                    QMessageBox::information(this,"BAN SUCCESS",customer->getName() + " has been banned!");
+                getBooking()->setIsModified(true);
+                ui->tableWidget->removeRow(RowMax-1);
+            }else
+            {
+                QMessageBox::warning(this,"Banned Customer","Error while banning the last customer from the booking object");
+            }
+        }
+        return;
+    }
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+
+    for(auto& Row : rows)
+    {
+        auto NameWidget = ui->tableWidget->item(Row,0);
+        if(!NameWidget)
+        {
+            continue;
+        }
+        auto customer = booking.getCustomerByName(NameWidget->text());
+        auto uCustomer = UniqueCustomer(customer);
+        bool IsSuccess = false;
+        QString name = customer->getName();
+        if(!customer)
+        {
+            continue;
+        }
+
+        QSqlQuery BanCustomerQuery;
+        qDebug() << uCustomer->getID();
+        BanCustomerQuery.prepare("UPDATE Unique_Customer SET banned = true WHERE id = :id");
+        BanCustomerQuery.bindValue(":id",uCustomer->getID());
+        if(!BanCustomerQuery.exec())
+        {
+            QMessageBox::warning(this,"Banned Customer","Error updating database with banned customer");
+        }
+
+        IsSuccess  = true;
+        // for each selected row
+        if(IsSuccess)
+        {
+            QMessageBox::information(this,"BAN SUCCESS",name + " has been banned!");
+        }
+    }
 }
 void MainWindow::OnBookingCustomerCreated(){
 
@@ -715,6 +795,17 @@ void MainWindow::OnBookingCustomerCheckedIn(){
         {
             continue;
         }
+        auto ucustomer = UniqueCustomer(customer);
+        if(!ucustomer)
+        {
+            QMessageBox::warning(this,"CHECK-IN FAILED", "Failed to get unique object for this customer");
+            continue;
+        }
+        if(ucustomer->getIsBanned())
+        {
+            QMessageBox::warning(this,"CHECK-IN FAILED", "Failed to check in. BANNED CUSTOMER!!!");
+            continue;
+        }
         if(customer->getCheckedIn())
         {
             QMessageBox::warning(this,"CHECK-IN FAILED",customer->getName() + " is already checked in!");
@@ -831,6 +922,11 @@ void MainWindow::OnCustomerInfoRequested()
 
     if (SearchCustomerQuery.exec())
     {
+        auto CustomerTable = ui->tableWidget_4;
+        CustomerTable->blockSignals(true);
+        uCustomers.clear();
+        CustomerTable->clearContents();
+        CustomerTable->setRowCount(0);
         bool found = false;
         while (SearchCustomerQuery.next())
         {
@@ -844,6 +940,7 @@ void MainWindow::OnCustomerInfoRequested()
             ucustomer.setInformation(SearchCustomerQuery.value("information").toString());
             ucustomer.setLastRoom(SearchCustomerQuery.value("last_room").toInt());
             ucustomer.setName(SearchCustomerQuery.value("name").toString());
+            ucustomer.setIsBanned(SearchCustomerQuery.value("banned").toBool());
             AddCustomer(&ucustomer);
         }
 
@@ -1180,6 +1277,159 @@ void MainWindow::OnSelectedCustomerRemoved()
         }
     }
 
+}
+
+void MainWindow::OnCustomerBanned()
+{
+    qDebug() << "OnCustomerBanned";
+    QSet<int> rows;
+
+    // Change information on booking
+    auto CustomerTable = ui->tableWidget_4;
+
+    QList<QTableWidgetItem*> selectedItems = CustomerTable->selectedItems();
+
+    if(selectedItems.empty())
+    {
+        return;
+    }
+
+
+
+    if (QMessageBox::question(this, "Confirm Ban Unban", "Are you sure you want to ban/unban this customer?") != QMessageBox::Yes) {
+        return;
+    }
+
+    // Update UI
+    for(auto& obj : selectedItems)
+    {
+        rows.insert(obj->row());
+    }
+
+    for(auto& Row : rows)
+    {
+        auto NameWidget = CustomerTable->item(Row,0);
+        if(!NameWidget)
+        {
+            continue;
+        }
+
+        QString name = CustomerTable->item(Row,2)->text();//ui->lineEdit->text() + " " + ui->lineEdit_2->text();
+        QString phone = CustomerTable->item(Row,4)->text();;
+        QString ID = CustomerTable->item(Row,0)->text();
+        QString email = CustomerTable->item(Row,5   )->text();
+        QString bookingNum = CustomerTable->item(Row,1)->text();
+        bool hasName = name != "";
+        bool hasPhone = phone != "";
+        bool hasID = ID != "";
+        bool hasEmail = email != "";
+        bool hasBookingNum = bookingNum != "";
+
+        UCustomer* customer = this->GetCustomerByName(name);
+        if(!customer)
+        {
+            QMessageBox::warning(this,"Ban customer","Couldn't find customer in our table.");
+            return;
+        }
+        if(!hasName && !hasPhone && !hasID && !hasEmail && !hasBookingNum)
+        {
+            QMessageBox::warning(this,"Remove customer - failure","Failed to remove empty customer.");
+            return;
+        }
+        QString Query = QString("SELECT COUNT(*) FROM Unique_Customer WHERE 1=1");
+
+        if(hasName)
+        {
+            Query += " AND name = :name";
+        }
+
+        if(hasPhone)
+        {
+            Query += " AND phone_number = :phone_number";
+        }
+
+        if(hasID)
+        {
+            Query += " AND id = :id";
+        }
+
+        if(hasEmail)
+        {
+            Query += " AND email = :email";
+        }
+
+        if(hasBookingNum)
+        {
+            Query += " AND booking_number= :booking_number";
+        }
+
+        QSqlQuery ExistsCustomer;// just an extra check if it exists
+        ExistsCustomer.prepare(Query);
+
+        if(hasName)
+        {
+            ExistsCustomer.bindValue(":name",name);
+        }
+
+        if(hasPhone)
+        {
+            ExistsCustomer.bindValue(":phone_number",phone);
+        }
+
+        if(hasID)
+        {
+            ExistsCustomer.bindValue(":id",ID);
+        }
+
+        if(hasEmail)
+        {
+            ExistsCustomer.bindValue(":email",email);
+        }
+
+        if(hasBookingNum)
+        {
+            ExistsCustomer.bindValue(":booking_number",bookingNum);
+        }
+
+
+        if(ExistsCustomer.exec())
+        {
+            if(ExistsCustomer.next())
+            {
+                if(ExistsCustomer.value(0).toInt() <= 0)
+                {
+                    QMessageBox::warning(this,"Ban/Unban Customer","This customer doesn't exist on database.");
+                    return;
+                }
+            }
+        }
+        else
+        {
+            QMessageBox::warning(this,"Ban/Unban Customer","Internal error to find existing one:"+ExistsCustomer.lastError().text());
+            return;
+        }
+        customer->setIsBanned(!customer->getIsBanned());
+
+        QSqlQuery RemoveCustomerQuery;
+        bool IsBeingBanned = customer->getIsBanned();
+        RemoveCustomerQuery.prepare("UPDATE Unique_Customer SET banned = :banned WHERE id = :id");
+        RemoveCustomerQuery.bindValue(":id",ID);
+        RemoveCustomerQuery.bindValue(":banned",IsBeingBanned);
+        if (!RemoveCustomerQuery.exec()) {
+            QMessageBox::warning(this, "Banning failed", "Could not ban/unban customer: " + RemoveCustomerQuery.lastError().text());
+            return;
+        }
+
+        if(customer->getIsBanned())
+        {
+            QMessageBox::information(this,"BAN SUCCESS",name + " has been banned!");
+        }else
+        {
+            QMessageBox::information(this,"UNBAN SUCCESS",name + " has been unbanned!");
+        }
+
+    }
+     LoadCustomers();
 }
 
 void MainWindow::OnNewPartnerCreated()
@@ -2989,6 +3239,7 @@ void MainWindow::SetCustomersPage(){
     connect(ui->pushButton_30,&QPushButton::clicked,this,&MainWindow::OnCustomerInfoRequested);
     connect(ui->pushButton_31,&QPushButton::clicked,this,&MainWindow::OnNewCustomerCreated);
     connect(ui->pushButton_32,&QPushButton::clicked,this,&MainWindow::OnSelectedCustomerRemoved);
+    connect(ui->pushButton_35,&QPushButton::clicked,this,&MainWindow::OnCustomerBanned);
 
     connect(ui->tableWidget_4,&QTableWidget::itemDoubleClicked,this,&MainWindow::OnTableItemEditable);
 
@@ -3002,45 +3253,52 @@ void MainWindow::LoadCustomers()
     this->blockSignals(true);
     auto CustomerTable = ui->tableWidget_4;
     CustomerTable->blockSignals(true);
+    for(int i = 0 ; i < uCustomers.size(); ++i)
+    {
+        auto customer = uCustomers[i];
 
-    if(uCustomers.empty())
-    {
-        CustomerTable->clearContents();
-        CustomerTable->setRowCount(0);
-    }
-    else
-    {
-        for(int i = 0 ; i < uCustomers.size(); ++i)
+
+        int RowCount = CustomerTable->rowCount();
+        if(i > RowCount-1)
         {
-            auto customer = uCustomers[i];
+            CustomerTable->insertRow(RowCount); // Insert at the end
+        }
 
+        CustomerTable->setItem(i,0,new QTableWidgetItem(QString::number(customer.getID())));
+        CustomerTable->item(i,0)->setFlags(CustomerTable->item(i,0)->flags() & ~Qt::ItemIsEditable);
 
-            int RowCount = CustomerTable->rowCount();
-            if(i > RowCount-1)
+        CustomerTable->setItem(i,1,new QTableWidgetItem(customer.getBookingNumber()));
+        CustomerTable->item(i,1)->setFlags(CustomerTable->item(i,1)->flags() & ~Qt::ItemIsEditable);
+
+        CustomerTable->setItem(i,2,new QTableWidgetItem(customer.getName()));
+        CustomerTable->item(i,2)->setFlags(CustomerTable->item(i,2)->flags() & ~Qt::ItemIsEditable);
+
+        CustomerTable->setItem(i,3,new QTableWidgetItem(customer.getLastRoom()));
+        CustomerTable->item(i,3)->setFlags(CustomerTable->item(i,3)->flags() & ~Qt::ItemIsEditable);
+
+        CustomerTable->setItem(i,4,new QTableWidgetItem(customer.getPhonenumber()));
+        CustomerTable->item(i,4)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
+
+        CustomerTable->setItem(i,5,new QTableWidgetItem(customer.getEmail()));
+        CustomerTable->item(i,5)->setFlags(CustomerTable->item(i,5)->flags() & ~Qt::ItemIsEditable);
+
+        CustomerTable->setItem(i,6,new QTableWidgetItem(customer.getInformation()));
+        CustomerTable->item(i,6)->setFlags(CustomerTable->item(i,6)->flags() & ~Qt::ItemIsEditable);
+
+        for(int ii = 0; ii < CustomerTable->columnCount(); ++ii)
+        {
+            auto item = CustomerTable->item(i,ii);
+            if(!item)
             {
-               CustomerTable->insertRow(RowCount); // Insert at the end
+                continue;
             }
-            CustomerTable->setItem(i,0,new QTableWidgetItem(QString::number(customer.getID())));
-            CustomerTable->item(i,0)->setFlags(CustomerTable->item(i,0)->flags() & ~Qt::ItemIsEditable);
-
-            CustomerTable->setItem(i,1,new QTableWidgetItem(customer.getBookingNumber()));
-            CustomerTable->item(i,1)->setFlags(CustomerTable->item(i,1)->flags() & ~Qt::ItemIsEditable);
-
-            CustomerTable->setItem(i,2,new QTableWidgetItem(customer.getName()));
-            CustomerTable->item(i,2)->setFlags(CustomerTable->item(i,2)->flags() & ~Qt::ItemIsEditable);
-
-            CustomerTable->setItem(i,3,new QTableWidgetItem(customer.getLastRoom()));
-            CustomerTable->item(i,3)->setFlags(CustomerTable->item(i,3)->flags() & ~Qt::ItemIsEditable);
-
-            CustomerTable->setItem(i,4,new QTableWidgetItem(customer.getPhonenumber()));
-            CustomerTable->item(i,4)->setFlags(CustomerTable->item(i,4)->flags() & ~Qt::ItemIsEditable);
-
-            CustomerTable->setItem(i,5,new QTableWidgetItem(customer.getEmail()));
-            CustomerTable->item(i,5)->setFlags(CustomerTable->item(i,5)->flags() & ~Qt::ItemIsEditable);
-
-            CustomerTable->setItem(i,6,new QTableWidgetItem(customer.getInformation()));
-            CustomerTable->item(i,6)->setFlags(CustomerTable->item(i,6)->flags() & ~Qt::ItemIsEditable);
-
+            if(customer.getIsBanned())
+            {
+                item->setBackground(Qt::red);
+            }else
+            {
+                item->setBackground(Qt::white);
+            }
         }
     }
 
@@ -3079,6 +3337,74 @@ void MainWindow::AddCustomer(UCustomer *customer)
     }
     return;
 
+}
+
+UCustomer *MainWindow::UniqueCustomer(Customer *customer)
+{
+    UCustomer* result = nullptr;
+    if(!customer) return result;
+
+    QSqlQuery UniqueCustomerQuery;
+
+    UniqueCustomerQuery.prepare("SELECT * FROM Unique_Customer WHERE name=:name;"); // first matching
+    UniqueCustomerQuery.bindValue(":name",customer->getName());
+
+    if(UniqueCustomerQuery.exec() && UniqueCustomerQuery.next())
+    {
+        result = new UCustomer();
+
+        result->setBookingNumber(UniqueCustomerQuery.value("booking_number").toString());
+        result->setID(UniqueCustomerQuery.value("id").toInt());
+        result->setEmail(UniqueCustomerQuery.value("email").toString());
+        result->setInformation(UniqueCustomerQuery.value("notes").toString());
+        result->setIsBanned(UniqueCustomerQuery.value("banned").toBool());
+        result->setName(UniqueCustomerQuery.value("name").toString());
+        result->setPhonenumber(UniqueCustomerQuery.value("phone").toString());
+        result->setLastRoom(UniqueCustomerQuery.value("last_room").toInt());
+    }else
+    {
+        QSqlQuery CreateUniqueCustomer;
+        CreateUniqueCustomer.prepare("INSERT INTO Unique_Customer (booking_number,name,last_room,phone_number,email,information,banned) Values (:booking_number,:name,:last_room,:phone_number,:email,:information,:banned)");
+        CreateUniqueCustomer.bindValue(":booking_number",getBooking()->getBookingNumber());
+        CreateUniqueCustomer.bindValue(":name",customer->getName());
+        CreateUniqueCustomer.bindValue(":last_room",getBooking()->getRoomNumber());
+        CreateUniqueCustomer.bindValue(":phone_number",customer->getPhonenumber());
+        CreateUniqueCustomer.bindValue(":email",customer->getEmail());
+        CreateUniqueCustomer.bindValue(":information",getBooking()->getNotes());
+        CreateUniqueCustomer.bindValue(":banned",false);
+
+        if(!CreateUniqueCustomer.exec())
+        {
+            QMessageBox::warning(this,"Make unique customer - ERROR","Failed to call create unique customer query");
+        }
+
+        // Retrieve the inserted ID
+        QVariant insertedId = CreateUniqueCustomer.lastInsertId();
+
+        // Use the ID to retrieve the full row
+        if (insertedId.isValid())
+        {
+            QSqlQuery selectInserted;
+            selectInserted.prepare("SELECT * FROM Unique_Customer WHERE id = :id");
+            selectInserted.bindValue(":id", insertedId.toInt());
+
+            if (selectInserted.exec() && selectInserted.next())
+            {
+                result = new UCustomer();
+
+                result->setBookingNumber(selectInserted.value("booking_number").toString());
+                result->setID(selectInserted.value("id").toInt());
+                result->setEmail(selectInserted.value("email").toString());
+                result->setInformation(selectInserted.value("notes").toString());
+                result->setIsBanned(selectInserted.value("banned").toBool());
+                result->setName(selectInserted.value("name").toString());
+                result->setPhonenumber(selectInserted.value("phone").toString());
+                result->setLastRoom(selectInserted.value("last_room").toInt());
+            }
+        }
+
+    }
+    return result;
 }
 void MainWindow::setPartnersPage(){
 

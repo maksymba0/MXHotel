@@ -53,6 +53,8 @@ public:
     UCustomer* GetCustomerByName(QString Name);
     void AddCustomer(UCustomer* customer);
 
+    UCustomer* UniqueCustomer(Customer* customer);
+
     //Partners Page
     void setPartnersPage();
     Partner* GetPartner();
@@ -111,6 +113,7 @@ private slots:
     void OnCustomerInfoRequested();
     void OnNewCustomerCreated();
     void OnSelectedCustomerRemoved();
+    void OnCustomerBanned();
 
     void OnNewPartnerCreated();
     void OnPartnerRemoved();
